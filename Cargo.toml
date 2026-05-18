@@ -1,0 +1,66 @@
+[package]
+name        = "polar-bear-biochip"
+version     = "0.1.0"
+edition     = "2021"
+description = "Bio-chip intelligence framework: multi-sensor fusion + rig-core LLM orchestration + ECDSA-signed data provenance"
+authors     = ["Murtaza Ali Imtiaz <self@murtazai.org>"]
+license     = "License-PBS"
+repository  = "https://github.com/murtazaai/polar-bear-biochip"
+keywords    = ["biochip", "rig", "ecdsa", "sensor-fusion", "agentic-ai"]
+categories  = ["science", "cryptography"]
+
+[[bin]]
+name = "polar-bear-biochip"
+path = "src/main.rs"
+
+[dependencies]
+# ─── Async runtime ────────────────────────────────────────────────────────────
+# tokio powers concurrent sensor streams and async agent calls
+tokio              = { version = "1",     features = ["full"] }
+
+# ─── ECDSA secp256k1 provenance ───────────────────────────────────────────────
+# k256: secp256k1 ECDSA for blockchain-grade signed output provenance
+# (same curve used by Bitcoin, Ethereum, and Solana wallet signatures)
+k256               = { version = "0.13",  features = ["ecdsa"] }
+# Pin base64ct to avoid downstream edition2024 Cargo requirement on older toolchains
+base64ct           = "=1.6.0"
+
+# ─── Serialisation ────────────────────────────────────────────────────────────
+serde              = { version = "1",     features = ["derive"] }
+serde_json         = "1"
+
+# ─── Structured logging ───────────────────────────────────────────────────────
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3",  features = ["env-filter", "fmt"] }
+
+# ─── Sensor simulation ────────────────────────────────────────────────────────
+rand               = "0.8"
+
+# ─── Cryptography ─────────────────────────────────────────────────────────────
+sha2               = "0.10"
+hex                = "0.4"
+
+# ─── Timestamps ───────────────────────────────────────────────────────────────
+chrono             = { version = "0.4",  features = ["serde"] }
+
+# ─── Error handling ───────────────────────────────────────────────────────────
+anyhow             = "1"
+
+# ─── CLI ──────────────────────────────────────────────────────────────────────
+# Pin to 4.4.x — avoids transitive clap_lex ≥1.0 which requires Cargo ≥1.85
+clap               = { version = "=4.4.18", features = ["derive"] }
+
+# ─── NOTE on rig-core ─────────────────────────────────────────────────────────
+# rig-core (0xPlaygrounds/rig) is listed in the production tech stack.
+# The rig-core crate transitively depends on reqwest → idna_adapter ≥1.2 which
+# requires Cargo edition2024 (Cargo ≥1.85). This project therefore implements
+# the Anthropic API call directly over HTTP using std::process::Command + curl,
+# mirroring exactly what rig-core does internally. On a Rust ≥1.85 toolchain
+# simply swap the agent module for rig-core; the interface is identical.
+# Reference: https://github.com/0xPlaygrounds/rig  (crate: rig-core ≥0.9)
+
+[profile.release]
+opt-level     = 3
+lto           = true
+codegen-units = 1
+strip         = true
