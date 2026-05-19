@@ -29,6 +29,7 @@ pub enum BiochipError {
     /// JSON serialisation / deserialisation error.
     #[error("serialise error: {source}")]
     Serialise {
+        /// The underlying `serde_json` error.
         #[from]
         source: serde_json::Error,
     },
@@ -36,6 +37,7 @@ pub enum BiochipError {
     /// File-system I/O error (reading/writing signed outputs).
     #[error("I/O error: {source}")]
     Io {
+        /// The underlying `std::io::Error`.
         #[from]
         source: std::io::Error,
     },
@@ -43,6 +45,7 @@ pub enum BiochipError {
     /// Hex encoding / decoding error.
     #[error("hex error: {source}")]
     Hex {
+        /// The underlying `hex::FromHexError`.
         #[from]
         source: hex::FromHexError,
     },

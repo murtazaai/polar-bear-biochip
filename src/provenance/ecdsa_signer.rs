@@ -38,7 +38,7 @@ use k256::{
         signature::{Signer, Verifier},
     },
 };
-use rand::rngs::OsRng;
+use rand_core::OsRng;
 use sha2::{Digest, Sha256};
 
 use crate::types::{InferenceResult, SignedOutput};
@@ -122,14 +122,14 @@ impl EcdsaSigner {
     /// # Errors
     /// Returns an error if JSON serialisation fails.
     pub fn sign_result(&self, result: &InferenceResult) -> Result<SignedOutput> {
-        let payload_json = serde_json::to_string(result)
-            .map_err(|e| anyhow!("JSON serialise: {e}"))?;
+        let payload_json =
+            serde_json::to_string(result).map_err(|e| anyhow!("JSON serialise: {e}"))?;
 
-        let hash_bytes        = Sha256::digest(payload_json.as_bytes());
-        let payload_hash_hex  = hex::encode(&hash_bytes);
+        let hash_bytes = Sha256::digest(payload_json.as_bytes());
+        let payload_hash_hex = hex::encode(&hash_bytes);
 
         let signature: Signature = self.signing_key.sign(&hash_bytes);
-        let signature_hex        = hex::encode(signature.to_bytes());
+        let signature_hex = hex::encode(signature.to_bytes());
 
         Ok(SignedOutput {
             inference_result: result.clone(),
@@ -187,8 +187,8 @@ impl EcdsaVerifier {
     /// Returns an error if the hex is malformed or the point is not on secp256k1.
     pub fn from_hex(hex_str: &str) -> Result<Self> {
         let bytes = hex::decode(hex_str).map_err(|e| anyhow!("hex decode: {e}"))?;
-        let point = EncodedPoint::from_bytes(bytes)
-            .map_err(|e| anyhow!("invalid SEC 1 point: {e}"))?;
+        let point =
+            EncodedPoint::from_bytes(bytes).map_err(|e| anyhow!("invalid SEC 1 point: {e}"))?;
         let verifying_key = VerifyingKey::from_encoded_point(&point)
             .map_err(|e| anyhow!("point not on curve: {e}"))?;
         Ok(Self { verifying_key })
@@ -199,8 +199,7 @@ impl EcdsaVerifier {
     /// # Errors
     /// Returns an error if the hex or signature bytes are malformed.
     pub fn verify(&self, message: &[u8], signature_hex: &str) -> Result<bool> {
-        let sig_bytes = hex::decode(signature_hex)
-            .map_err(|e| anyhow!("sig hex decode: {e}"))?;
+        let sig_bytes = hex::decode(signature_hex).map_err(|e| anyhow!("sig hex decode: {e}"))?;
         let signature = Signature::from_slice(&sig_bytes)
             .map_err(|e| anyhow!("invalid signature bytes: {e}"))?;
         Ok(self.verifying_key.verify(message, &signature).is_ok())
@@ -219,13 +218,15 @@ mod tests {
     fn dummy_result(seq: u64) -> InferenceResult {
         let mut fusion = SensorFusion::new();
         InferenceResult {
-            timestamp:         Utc::now(),
-            sequence_id:       seq,
-            fused_reading:     fusion.sample(seq),
-            cognitive_state:   "test state".to_string(),
-            recommendations:   vec!["rec a".to_string(), "rec b".to_string()],
-            alert_level:       AlertLevel::Normal,
-            raw_llm_response:  r#"{"cognitive_state":"test","alert_level":"Normal","recommendations":[]}"#.to_string(),
+            timestamp: Utc::now(),
+            sequence_id: seq,
+            fused_reading: fusion.sample(seq),
+            cognitive_state: "test state".to_string(),
+            recommendations: vec!["rec a".to_string(), "rec b".to_string()],
+            alert_level: AlertLevel::Normal,
+            raw_llm_response:
+                r#"{"cognitive_state":"test","alert_level":"Normal","recommendations":[]}"#
+                    .to_string(),
         }
     }
 
@@ -258,13 +259,16 @@ mod tests {
         sig.replace_range(0..1, flipped);
         signed.signature_hex = sig;
 
-        assert!(EcdsaSigner::verify_signed(&signed).is_err() || !EcdsaSigner::verify_signed(&signed).unwrap());
+        assert!(
+            EcdsaSigner::verify_signed(&signed).is_err()
+                || !EcdsaSigner::verify_signed(&signed).unwrap()
+        );
     }
 
     #[test]
     fn from_hex_roundtrip_preserves_public_key() {
         let original = EcdsaSigner::generate();
-        let hex      = original.private_key_hex();
+        let hex = original.private_key_hex();
         let restored = EcdsaSigner::from_hex(&hex).unwrap();
         assert_eq!(original.public_key_hex(), restored.public_key_hex());
     }
@@ -276,7 +280,7 @@ mod tests {
         let signed = signer.sign_result(&result).unwrap();
 
         let verifier = EcdsaVerifier::from_hex(&signed.public_key_hex).unwrap();
-        let hash     = Sha256::digest(
+        let hash = Sha256::digest(
             serde_json::to_string(&signed.inference_result)
                 .unwrap()
                 .as_bytes(),
@@ -288,10 +292,10 @@ mod tests {
     fn cross_key_verification_fails() {
         let signer_a = EcdsaSigner::generate();
         let signer_b = EcdsaSigner::generate();
-        let signed   = signer_a.sign_result(&dummy_result(5)).unwrap();
+        let signed = signer_a.sign_result(&dummy_result(5)).unwrap();
 
         let verifier_b = EcdsaVerifier::from_hex(&signer_b.public_key_hex()).unwrap();
-        let hash       = Sha256::digest(
+        let hash = Sha256::digest(
             serde_json::to_string(&signed.inference_result)
                 .unwrap()
                 .as_bytes(),

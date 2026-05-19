@@ -28,7 +28,7 @@ impl AccelerometerSensor {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            rng: rand::thread_rng(),
+            rng: rand::rng(),
             prev_x: 0.0,
             prev_y: 0.0,
             prev_z: 9.81,
@@ -57,14 +57,14 @@ impl AccelerometerSensor {
         self.prev_z = z;
 
         let magnitude = (x * x + y * y + z * z).sqrt();
-        let activity  = classify_activity(magnitude, x, y);
+        let activity = classify_activity(magnitude, x, y);
 
         AccelerometerReading {
-            timestamp:      Utc::now(),
-            x:              round2(x),
-            y:              round2(y),
-            z:              round2(z),
-            magnitude:      round2(magnitude),
+            timestamp: Utc::now(),
+            x: round2(x),
+            y: round2(y),
+            z: round2(z),
+            magnitude: round2(magnitude),
             activity_state: activity,
         }
     }
@@ -83,15 +83,15 @@ fn classify_activity(mag: f64, x: f64, y: f64) -> ActivityState {
     let lateral = (x * x + y * y).sqrt();
     match (mag, lateral) {
         _ if lateral > 1.5 => ActivityState::Gesture,
-        _ if mag > 12.5    => ActivityState::Running,
-        _ if mag > 10.8    => ActivityState::Walking,
-        _                  => ActivityState::Stationary,
+        _ if mag > 12.5 => ActivityState::Running,
+        _ if mag > 10.8 => ActivityState::Walking,
+        _ => ActivityState::Stationary,
     }
 }
 
 /// Bounded random-walk step with 10 % of range as step size.
 fn smooth(prev: f64, min: f64, max: f64, rng: &mut rand::rngs::ThreadRng) -> f64 {
-    let noise: f64 = (rng.gen::<f64>() - 0.5) * (max - min) * 0.10;
+    let noise: f64 = (rng.random::<f64>() - 0.5) * (max - min) * 0.10;
     (prev + noise).clamp(min, max)
 }
 
@@ -136,7 +136,10 @@ mod tests {
         // This test verifies the classifier runs without panicking.
         assert!(matches!(
             r.activity_state,
-            ActivityState::Stationary | ActivityState::Walking | ActivityState::Running | ActivityState::Gesture
+            ActivityState::Stationary
+                | ActivityState::Walking
+                | ActivityState::Running
+                | ActivityState::Gesture
         ));
     }
 

@@ -1,43 +1,43 @@
 {
   "inference_result": {
-    "timestamp": "2026-05-18T14:11:47.794911699Z",
+    "timestamp": "2026-05-19T12:12:34.983862691Z",
     "sequence_id": 1,
     "fused_reading": {
-      "timestamp": "2026-05-18T14:11:47.794900777Z",
+      "timestamp": "2026-05-19T12:12:34.983839312Z",
       "sequence_id": 1,
       "bci": {
-        "timestamp": "2026-05-18T14:11:47.794892996Z",
-        "delta_hz": 2.16,
-        "theta_hz": 5.82,
-        "alpha_hz": 11.74,
-        "beta_hz": 16.93,
-        "gamma_hz": 41.04,
-        "attention_index": 0.55,
-        "meditation_index": 0.8
+        "timestamp": "2026-05-19T12:12:34.983828443Z",
+        "delta_hz": 1.87,
+        "theta_hz": 6.08,
+        "alpha_hz": 10.56,
+        "beta_hz": 18.3,
+        "gamma_hz": 43.74,
+        "attention_index": 0.62,
+        "meditation_index": 0.67
       },
       "accelerometer": {
-        "timestamp": "2026-05-18T14:11:47.794900723Z",
-        "x": -0.02,
-        "y": -0.04,
-        "z": 9.87,
-        "magnitude": 9.87,
+        "timestamp": "2026-05-19T12:12:34.983839186Z",
+        "x": 0.25,
+        "y": -0.01,
+        "z": 9.82,
+        "magnitude": 9.82,
         "activity_state": "Stationary"
       },
-      "cognitive_load": 0.46,
-      "emotional_valence": 0.02,
-      "arousal_level": 0.74
+      "cognitive_load": 0.52,
+      "emotional_valence": -0.01,
+      "arousal_level": 0.76
     },
     "cognitive_state": "Balanced beta-alpha profile consistent with focused, productive cognitive engagement",
     "recommendations": [
       "All readings within optimal operating range - maintain current activity and environment",
-      "Beta dominance confirms active problem-solving mode is engaged",
+      "Beta dominance confirms active problem-solving mode is fully engaged",
       "Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"
     ],
     "alert_level": "Normal",
-    "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range - maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
+    "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range - maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is fully engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
   },
-  "payload_hash_hex": "69742c192d788a14466946819a7737b54d554a2bc67e70e28dc5b281c992ac48",
-  "signature_hex": "5e899dcd70864bb9237c3472a9fa404be34fbeea8a0867ac9550e04859fce7e7583ac3af45e9f211efb5e345c2a52ae50324351f12c16be5d76bfde468fcb2d1",
-  "public_key_hex": "04d23257ac0be562d82b2c918f304175757c571357637fe5e3334b424231117169eb79b93e3fd1e50d113e21e302f2f99b14d84409850263f98492261c583a6ad7",
-  "signed_at": "2026-05-18T14:11:47.795183477Z"
+  "payload_hash_hex": "df7efa7a9981d1c07e1ca298d1cda0916c56322d4621a482886529adecbd1bea",
+  "signature_hex": "9687a97ea2de4723d8237a504e9fbae11daf9e79dca0ecf13cb4da324264ad4f0f3fb989eaf491e46e17d480a8374d13efe0adc68d2af0fceeecbd1ee093dee8",
+  "public_key_hex": "046a518cc148cdd34fc3d674d0e07f83b691f940efc7a585086e7c082410fa4c360935f969b5f2010721d57fb72a78494177ad83b70221754f99f3e4aa1ef58217",
+  "signed_at": "2026-05-19T12:12:34.984174203Z"
 }

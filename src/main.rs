@@ -14,6 +14,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use sha2::Digest;
 use tracing::{info, warn};
 
 use polar_bear_biochip::{
@@ -27,9 +28,9 @@ use polar_bear_biochip::{
 
 #[derive(Parser)]
 #[command(
-    name    = "polar-bear-biochip",
+    name = "polar-bear-biochip",
     version,
-    about   = "Bio-chip intelligence: sensor fusion → rig-core LLM → ECDSA provenance",
+    about = "Bio-chip intelligence: sensor fusion → rig-core LLM → ECDSA provenance",
     long_about = "Fuses EEG + accelerometer data, infers cognitive state via a rig-core LLM\n\
                   agent, and ECDSA-signs every output for blockchain-grade provenance.\n\
                   All operations run in DRY-RUN / DEMO mode by default (no API key needed)."
@@ -82,26 +83,24 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command.unwrap_or(Commands::Run {
-        cycles:     5,
-        demo:       false,
+        cycles: 5,
+        demo: false,
         output_dir: "signed_outputs".into(),
-        model:      "claude-sonnet-4-6".to_string(),
+        model: "claude-sonnet-4-6".to_string(),
     }) {
-        Commands::Run { cycles, demo, output_dir, model } => {
-            cmd_run(cycles, demo, &output_dir, &model).await
-        }
+        Commands::Run {
+            cycles,
+            demo,
+            output_dir,
+            model,
+        } => cmd_run(cycles, demo, &output_dir, &model).await,
         Commands::Verify { file } => cmd_verify(&file),
     }
 }
 
 // ── `run` command ─────────────────────────────────────────────────────────────
 
-async fn cmd_run(
-    cycles:     u32,
-    demo:       bool,
-    output_dir: &Path,
-    model:      &str,
-) -> Result<()> {
+async fn cmd_run(cycles: u32, demo: bool, output_dir: &Path, model: &str) -> Result<()> {
     println!();
     println!("  ╔═══════════════════════════════════════════════════╗");
     println!("  ║   Polar Bear  ·  Bio-Chip Intelligence Framework  ║");
@@ -149,7 +148,10 @@ async fn cmd_run(
     println!("  Signed outputs written to: {}/", output_dir.display());
     println!();
     println!("  Verify offline:");
-    println!("    cargo run -- verify {}/cycle_001.json", output_dir.display());
+    println!(
+        "    cargo run -- verify {}/cycle_001.json",
+        output_dir.display()
+    );
     println!("  ══════════════════════════════════════════════════════");
 
     Ok(())
@@ -158,11 +160,11 @@ async fn cmd_run(
 // ── Single inference cycle ────────────────────────────────────────────────────
 
 async fn run_cycle(
-    cycle:      u32,
-    total:      u32,
-    fusion:     &mut SensorFusion,
-    agent:      &BioChipAgent,
-    signer:     &EcdsaSigner,
+    cycle: u32,
+    total: u32,
+    fusion: &mut SensorFusion,
+    agent: &BioChipAgent,
+    signer: &EcdsaSigner,
     output_dir: &Path,
 ) -> Result<()> {
     println!();
@@ -178,18 +180,25 @@ async fn run_cycle(
     let fused = fusion.sample(u64::from(cycle));
     println!(
         "  [SENSORS] BCI     α={:.1}  β={:.1}  θ={:.1}  δ={:.1}  γ={:.1} Hz",
-        fused.bci.alpha_hz, fused.bci.beta_hz,
-        fused.bci.theta_hz, fused.bci.delta_hz, fused.bci.gamma_hz,
+        fused.bci.alpha_hz,
+        fused.bci.beta_hz,
+        fused.bci.theta_hz,
+        fused.bci.delta_hz,
+        fused.bci.gamma_hz,
     );
     println!(
         "  [SENSORS] Accel   x={:+.2}  y={:+.2}  z={:.2} m/s²  |  {:?}",
-        fused.accelerometer.x, fused.accelerometer.y,
-        fused.accelerometer.z, fused.accelerometer.activity_state,
+        fused.accelerometer.x,
+        fused.accelerometer.y,
+        fused.accelerometer.z,
+        fused.accelerometer.activity_state,
     );
     println!(
         "  [SENSORS] Fused   cogLoad={:.2}  valence={:+.2}  arousal={:.2}  attn={:.2}",
-        fused.cognitive_load, fused.emotional_valence,
-        fused.arousal_level,  fused.bci.attention_index,
+        fused.cognitive_load,
+        fused.emotional_valence,
+        fused.arousal_level,
+        fused.bci.attention_index,
     );
 
     // 2. rig-core LLM inference
@@ -205,7 +214,10 @@ async fn run_cycle(
 
     // 3. ECDSA provenance
     let signed = signer.sign_result(&result)?;
-    println!("  [PROV]    Hash      : {}...", &signed.payload_hash_hex[..20]);
+    println!(
+        "  [PROV]    Hash      : {}...",
+        &signed.payload_hash_hex[..20]
+    );
     println!("  [PROV]    Signature : {}...", &signed.signature_hex[..20]);
 
     // Inline verification - demonstrates round-trip integrity.
@@ -235,7 +247,7 @@ fn cmd_verify(path: &Path) -> Result<()> {
     println!("  Verifying: {}", path.display());
     println!();
 
-    let json   = std::fs::read_to_string(path)
+    let json = std::fs::read_to_string(path)
         .map_err(|e| anyhow::anyhow!("cannot read {}: {e}", path.display()))?;
     let signed: SignedOutput = serde_json::from_str(&json)
         .map_err(|e| anyhow::anyhow!("invalid JSON in {}: {e}", path.display()))?;
@@ -247,9 +259,16 @@ fn cmd_verify(path: &Path) -> Result<()> {
         println!();
         println!("  Sequence ID  : {}", signed.inference_result.sequence_id);
         println!("  Signed at    : {}", signed.signed_at);
-        println!("  Cognitive    : {}", signed.inference_result.cognitive_state);
+        println!(
+            "  Cognitive    : {}",
+            signed.inference_result.cognitive_state
+        );
         println!("  Alert level  : {}", signed.inference_result.alert_level);
-        println!("  Public Key   : {}...{}", &signed.public_key_hex[..12], &signed.public_key_hex[118..]);
+        println!(
+            "  Public Key   : {}...{}",
+            &signed.public_key_hex[..12],
+            &signed.public_key_hex[118..]
+        );
         println!("  Payload Hash : {}...", &signed.payload_hash_hex[..20]);
         println!("  Signature    : {}...", &signed.signature_hex[..20]);
     } else {

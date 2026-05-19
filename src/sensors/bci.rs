@@ -38,13 +38,13 @@ impl BciSensor {
     /// Initialise with randomised starting values in the awake resting range.
     #[must_use]
     pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self {
-            prev_alpha: 10.0 + rng.gen::<f64>() * 2.0,
-            prev_beta:  18.0 + rng.gen::<f64>() * 4.0,
-            prev_theta:  5.5 + rng.gen::<f64>() * 1.0,
-            prev_delta:  2.0 + rng.gen::<f64>() * 0.5,
-            prev_gamma: 42.0 + rng.gen::<f64>() * 8.0,
+            prev_alpha: 10.0 + rng.random::<f64>() * 2.0,
+            prev_beta: 18.0 + rng.random::<f64>() * 4.0,
+            prev_theta: 5.5 + rng.random::<f64>() * 1.0,
+            prev_delta: 2.0 + rng.random::<f64>() * 0.5,
+            prev_gamma: 42.0 + rng.random::<f64>() * 8.0,
             rng,
         }
     }
@@ -54,31 +54,31 @@ impl BciSensor {
     /// Each call advances the random walk by at most ±15 % of the band range,
     /// clamped to physiologically plausible bounds for an awake resting adult.
     pub fn sample(&mut self) -> BciReading {
-        let alpha = smooth(self.prev_alpha,  8.0,  12.0, &mut self.rng);
-        let beta  = smooth(self.prev_beta,  12.0,  30.0, &mut self.rng);
-        let theta = smooth(self.prev_theta,  4.0,   8.0, &mut self.rng);
-        let delta = smooth(self.prev_delta,  0.5,   4.0, &mut self.rng);
-        let gamma = smooth(self.prev_gamma, 30.0,  70.0, &mut self.rng);
+        let alpha = smooth(self.prev_alpha, 8.0, 12.0, &mut self.rng);
+        let beta = smooth(self.prev_beta, 12.0, 30.0, &mut self.rng);
+        let theta = smooth(self.prev_theta, 4.0, 8.0, &mut self.rng);
+        let delta = smooth(self.prev_delta, 0.5, 4.0, &mut self.rng);
+        let gamma = smooth(self.prev_gamma, 30.0, 70.0, &mut self.rng);
 
         self.prev_alpha = alpha;
-        self.prev_beta  = beta;
+        self.prev_beta = beta;
         self.prev_theta = theta;
         self.prev_delta = delta;
         self.prev_gamma = gamma;
 
         // Attention:  high beta relative to slow waves → focused.
-        let attention  = ((beta  / (alpha + theta + 1.0)) * 0.6).clamp(0.0, 1.0);
+        let attention = ((beta / (alpha + theta + 1.0)) * 0.6).clamp(0.0, 1.0);
         // Meditation: high alpha relative to fast waves → relaxed.
-        let meditation = ((alpha / (beta  + gamma  + 1.0)) * 4.0).clamp(0.0, 1.0);
+        let meditation = ((alpha / (beta + gamma + 1.0)) * 4.0).clamp(0.0, 1.0);
 
         BciReading {
-            timestamp:        Utc::now(),
-            delta_hz:         round2(delta),
-            theta_hz:         round2(theta),
-            alpha_hz:         round2(alpha),
-            beta_hz:          round2(beta),
-            gamma_hz:         round2(gamma),
-            attention_index:  round2(attention),
+            timestamp: Utc::now(),
+            delta_hz: round2(delta),
+            theta_hz: round2(theta),
+            alpha_hz: round2(alpha),
+            beta_hz: round2(beta),
+            gamma_hz: round2(gamma),
+            attention_index: round2(attention),
             meditation_index: round2(meditation),
         }
     }
@@ -94,7 +94,7 @@ impl Default for BciSensor {
 
 /// Advance `prev` by a bounded random step and clamp to `[min, max]`.
 fn smooth(prev: f64, min: f64, max: f64, rng: &mut rand::rngs::ThreadRng) -> f64 {
-    let noise: f64 = (rng.gen::<f64>() - 0.5) * (max - min) * 0.15;
+    let noise: f64 = (rng.random::<f64>() - 0.5) * (max - min) * 0.15;
     (prev + noise).clamp(min, max)
 }
 
