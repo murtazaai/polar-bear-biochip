@@ -1,4 +1,4 @@
-//! # Accelerometer Sensor — 3-axis MEMS simulation
+//! # Accelerometer Sensor - 3-axis MEMS simulation
 //!
 //! Simulates a typical wrist-worn or implant-adjacent inertial measurement
 //! unit (IMU) at 50 Hz.  Gravity is maintained near 9.81 m/s² on the Z axis
@@ -44,7 +44,7 @@ impl AccelerometerSensor {
     pub fn sample(&mut self) -> AccelerometerReading {
         self.step_counter += 1;
 
-        // Periodic gait oscillation — one full cycle every ~10 samples.
+        // Periodic gait oscillation - one full cycle every ~10 samples.
         let gait_phase = (f64::from(self.step_counter) * 0.63).sin() * 0.8;
 
         let x = smooth(self.prev_x + gait_phase * 0.3, -2.0, 2.0, &mut self.rng);

@@ -50,13 +50,13 @@ polar-bear-biochip/
 │   ├── main.rs            Binary CLI; run / verify subcommands; inference loop
 │   ├── types.rs           BciReading · AccelerometerReading · FusedReading
 │   │                      InferenceResult · SignedOutput · AlertLevel (with Display)
-│   ├── error.rs           BiochipError — thiserror typed error hierarchy
+│   ├── error.rs           BiochipError - thiserror typed error hierarchy
 │   │
 │   ├── sensors/           Multi-sensor streaming layer
 │   │   ├── mod.rs         pub mod declarations; re-exports SensorFusion
-│   │   ├── bci.rs         BciSensor — EEG δθαβγ bands, attention + meditation indices
-│   │   ├── accelerometer.rs AccelerometerSensor — 3-axis MEMS, gait model, activity classifier
-│   │   └── fusion.rs      SensorFusion — cognitive_load / emotional_valence / arousal_level
+│   │   ├── bci.rs         BciSensor - EEG δθαβγ bands, attention + meditation indices
+│   │   ├── accelerometer.rs AccelerometerSensor - 3-axis MEMS, gait model, activity classifier
+│   │   └── fusion.rs      SensorFusion - cognitive_load / emotional_valence / arousal_level
 │   │
 │   ├── agent/             Rig (ARC) LLM inference layer
 │   │   ├── mod.rs         pub mod; re-exports BioChipAgent

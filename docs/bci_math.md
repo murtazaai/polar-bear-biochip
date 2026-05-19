@@ -1,4 +1,4 @@
-# EEG Signal Processing & Sensor Fusion — Mathematical Notes
+# EEG Signal Processing & Sensor Fusion - Mathematical Notes
 
 Mathematical reference for the signal processing pipeline in `polar-bear-biochip`.
 
@@ -130,7 +130,7 @@ In production, raw EEG data from the Emotiv EPOC SDK is preprocessed by:
 1. **Bandpass filter** (0.5–100 Hz, 4th-order Butterworth)
 2. **Notch filter** (50/60 Hz power-line interference)
 3. **ICA decomposition** (FastICA, 14 components)
-4. **Artifact rejection** — components with kurtosis > 5 or correlation with
+4. **Artifact rejection** - components with kurtosis > 5 or correlation with
    EOG/EMG reference channels are zeroed before back-projection
 
 The mock sensor in `bci.rs` bypasses this pipeline; all five band amplitudes are

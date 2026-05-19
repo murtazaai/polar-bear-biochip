@@ -53,13 +53,13 @@ use rig_core::{
 const PREAMBLE: &str = "\
 You are the inference core of a bio-chip intelligence system at Polar Bear Systems. \
 You receive fused readings from an EEG sensor and a 3-axis MEMS accelerometer. \
-Respond ONLY in this exact JSON format — no markdown, no preamble, no trailing text:\n\
+Respond ONLY in this exact JSON format - no markdown, no preamble, no trailing text:\n\
 {\"cognitive_state\":\"<one-sentence summary>\",\
 \"alert_level\":\"Normal\",\
 \"recommendations\":[\"<rec 1>\",\"<rec 2>\",\"<rec 3>\"]}\n\
 alert_level must be exactly: Normal | Elevated | Critical.\n\
 Normal   = healthy operating range.\n\
-Elevated = cognitive or physical stress — attention warranted.\n\
+Elevated = cognitive or physical stress - attention warranted.\n\
 Critical = anomaly requiring immediate intervention.\n\
 Interpretation guide:\n\
 - Delta/theta dominance → fatigue or drowsiness risk.\n\
@@ -100,7 +100,7 @@ struct ApiContent {
 ///
 /// With `--features ai-agent` the backend is `rig-core` → `claude-sonnet-4-6`.
 /// Without the feature, inference falls back to a `curl` subprocess calling
-/// the Anthropic REST API directly — identical JSON payload, same schema.
+/// the Anthropic REST API directly - identical JSON payload, same schema.
 pub struct BioChipAgent {
     /// Anthropic model identifier.
     model: String,
@@ -151,7 +151,7 @@ impl BioChipAgent {
     #[cfg(feature = "ai-agent")]
     async fn rig_inference(&self, reading: &FusedReading) -> Result<String> {
         let client = anthropic::Client::from_env()
-            .context("ANTHROPIC_API_KEY not set — pass --demo for offline mode")?;
+            .context("ANTHROPIC_API_KEY not set - pass --demo for offline mode")?;
         let agent  = client
             .agent(self.model.as_str())
             .preamble(PREAMBLE)
@@ -173,7 +173,7 @@ impl BioChipAgent {
         use std::process::Command;
 
         let api_key = std::env::var("ANTHROPIC_API_KEY")
-            .context("ANTHROPIC_API_KEY not set — pass --demo for offline demo mode")?;
+            .context("ANTHROPIC_API_KEY not set - pass --demo for offline demo mode")?;
 
         let body = serde_json::to_string(&ApiRequest {
             model:      self.model.as_str(),
@@ -193,7 +193,7 @@ impl BioChipAgent {
                 "--data",   body.as_str(),
             ])
             .output()
-            .context("curl subprocess failed — install curl or use --demo")?;
+            .context("curl subprocess failed - install curl or use --demo")?;
 
         if !output.status.success() {
             anyhow::bail!(
@@ -217,13 +217,13 @@ impl BioChipAgent {
 
     fn demo_response(&self, r: &FusedReading) -> String {
         if r.bci.delta_hz > 3.2 || r.bci.theta_hz > 7.0 {
-            r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue — microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity","Initiate a 20-minute NREM power-nap protocol to restore prefrontal cortex function","Re-schedule all cognitively demanding tasks to the post-recovery window"]}"#
+            r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue - microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity","Initiate a 20-minute NREM power-nap protocol to restore prefrontal cortex function","Re-schedule all cognitively demanding tasks to the post-recovery window"]}"#
         } else if r.cognitive_load > 0.72 || r.emotional_valence < -0.30 {
             r#"{"cognitive_state":"Elevated cognitive load with acute mental stress markers in beta-band dominance","alert_level":"Elevated","recommendations":["Decompose the current task into atomic sub-tasks to reduce working-memory pressure","Engage in 2 minutes of slow diaphragmatic breathing to attenuate beta dominance","Schedule a 10-minute active recovery block before resuming deep-focus work"]}"#
         } else if r.bci.meditation_index > 0.58 && r.cognitive_load < 0.38 {
-            r#"{"cognitive_state":"Deep alpha-dominant meditative state — optimal window for creative and divergent thinking","alert_level":"Normal","recommendations":["Leverage this flow window for insight-driven or creative work — interruptions are costly","Maintain ambient temperature and hydration to sustain alpha coherence","Log this session: alpha coherence of this quality is a trainable biometric target"]}"#
+            r#"{"cognitive_state":"Deep alpha-dominant meditative state - optimal window for creative and divergent thinking","alert_level":"Normal","recommendations":["Leverage this flow window for insight-driven or creative work - interruptions are costly","Maintain ambient temperature and hydration to sustain alpha coherence","Log this session: alpha coherence of this quality is a trainable biometric target"]}"#
         } else {
-            r#"{"cognitive_state":"Balanced beta-alpha profile consistent with focused, productive cognitive engagement","alert_level":"Normal","recommendations":["All readings within optimal operating range — maintain current activity and environment","Beta dominance confirms active problem-solving mode is fully engaged","Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"]}"#
+            r#"{"cognitive_state":"Balanced beta-alpha profile consistent with focused, productive cognitive engagement","alert_level":"Normal","recommendations":["All readings within optimal operating range - maintain current activity and environment","Beta dominance confirms active problem-solving mode is fully engaged","Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"]}"#
         }
         .to_string()
     }
@@ -239,7 +239,7 @@ impl BioChipAgent {
             .trim();
 
         let v: serde_json::Value = serde_json::from_str(clean)
-            .with_context(|| format!("LLM JSON parse error — raw response:\n{raw}"))?;
+            .with_context(|| format!("LLM JSON parse error - raw response:\n{raw}"))?;
 
         let cognitive_state = v["cognitive_state"]
             .as_str()
@@ -311,7 +311,7 @@ mod tests {
         // Run enough cycles to exercise multiple demo branches.
         for id in 1..=20_u64 {
             let reading = fusion.sample(id);
-            // tokio::runtime not needed — demo_response is sync; we call infer via a runtime.
+            // tokio::runtime not needed - demo_response is sync; we call infer via a runtime.
             let rt = tokio::runtime::Runtime::new().unwrap();
             let result = rt.block_on(agent.infer(reading)).unwrap();
             assert!(!result.cognitive_state.is_empty());

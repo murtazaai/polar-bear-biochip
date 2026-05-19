@@ -82,7 +82,7 @@ See [`docs/bci_math.md`](docs/bci_math.md) for full derivations and ICA pipeline
 
 ## ECDSA Provenance
 
-### Signing (FIPS 186-5 / SEC 1 v2.0 — secp256k1)
+### Signing (FIPS 186-5 / SEC 1 v2.0 - secp256k1)
 
 | Step | Operation |
 |------|-----------|
@@ -96,7 +96,7 @@ See [`docs/bci_math.md`](docs/bci_math.md) for full derivations and ICA pipeline
 ### Offline verification
 
 ```rust
-// No private key required — public key embedded in SignedOutput.
+// No private key required - public key embedded in SignedOutput.
 let valid = EcdsaSigner::verify_signed(&signed_output)?;
 
 // Or use the standalone verifier:
@@ -114,7 +114,7 @@ verifier.verify(&sha256_hash, &signed_output.signature_hex)?;
 |---|---|---|
 | Rust stable | ≥ 1.85.0 (MSRV) | `rustup update stable` |
 | `curl` | any | for non-ai-agent live inference |
-| `ANTHROPIC_API_KEY` | — | optional; demo mode if absent |
+| `ANTHROPIC_API_KEY` | - | optional; demo mode if absent |
 
 ### Quick start
 
@@ -123,7 +123,7 @@ git clone https://github.com/murtazaai/polar-bear-biochip
 cd polar-bear-biochip
 cp .env.example .env          # fill in ANTHROPIC_API_KEY for live inference
 
-# Demo mode — no API key required
+# Demo mode - no API key required
 cargo run -- run --demo --cycles 5
 
 # Live inference
@@ -180,9 +180,9 @@ INFO  Public Key : 04d23257ac0b...261c583a6ad7
   [SENSORS] Fused   cogLoad=0.51  valence=-0.00  arousal=0.75  attn=0.62
   [AGENT]   Querying rig-core LLM agent...
   [RESULT]  Alert         : ✅ Normal
-  [RESULT]  Cognitive State: Balanced beta-alpha profile — focused, productive engagement
+  [RESULT]  Cognitive State: Balanced beta-alpha profile - focused, productive engagement
   [RESULT]  Recommendations:
-              • Readings within optimal range — maintain current activity
+              • Readings within optimal range - maintain current activity
               • Beta dominance confirms active problem-solving mode
               • Schedule a 5-min micro-break within 45 minutes
   [PROV]    Hash      : 1d588fa83a0d8d1a9ffb...
@@ -236,7 +236,7 @@ cargo test provenan # provenance layer only
       "emotional_valence": -0.0,
       "arousal_level": 0.75
     },
-    "cognitive_state": "Balanced beta-alpha profile — focused engagement",
+    "cognitive_state": "Balanced beta-alpha profile - focused engagement",
     "alert_level": "Normal",
     "recommendations": [ "...", "...", "..." ]
   },
@@ -254,11 +254,11 @@ Tamper any field → SHA-256 hash changes → ECDSA signature invalidated.
 ## rig-core integration
 
 ```rust
-// Without --features ai-agent (curl subprocess — same JSON payload as rig-core):
+// Without --features ai-agent (curl subprocess - same JSON payload as rig-core):
 let agent = BioChipAgent::new("claude-sonnet-4-6", demo);
 let result = agent.infer(fused).await?;
 
-// With --features ai-agent (rig-core 0.37 backend — drop-in swap):
+// With --features ai-agent (rig-core 0.37 backend - drop-in swap):
 // src/agent/biochip_agent.rs rig_inference():
 let client = anthropic::Client::from_env()?;
 let agent  = client.agent(model).preamble(PREAMBLE).max_tokens(512).build();
@@ -271,5 +271,15 @@ Both paths produce identical `InferenceResult` structures.
 
 ## License
 
-Proprietary — © 2026 Murtaza Ali Imtiaz / Polar Bear Systems  
+Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear Systems  
 See [LICENSE-PBS](LICENSE-PBS) for permitted use.
+
+---
+
+## Author
+
+**Murtaza Ali Imtiaz**
+
+- LinkedIn: [LinkedIn](https://linkedin.com/in/murtazai)
+- GitHub: [@murtazaai](https://github.com/murtazaai)
+- Portfolio: [murtazai.com](https://murtazai.com)

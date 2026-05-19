@@ -47,7 +47,7 @@ enum Commands {
         #[arg(short, long, default_value_t = 5)]
         cycles: u32,
 
-        /// Force demo mode — simulate LLM responses without calling the API.
+        /// Force demo mode - simulate LLM responses without calling the API.
         /// Auto-enabled when `ANTHROPIC_API_KEY` is absent.
         #[arg(short, long)]
         demo: bool,
@@ -208,7 +208,7 @@ async fn run_cycle(
     println!("  [PROV]    Hash      : {}...", &signed.payload_hash_hex[..20]);
     println!("  [PROV]    Signature : {}...", &signed.signature_hex[..20]);
 
-    // Inline verification — demonstrates round-trip integrity.
+    // Inline verification - demonstrates round-trip integrity.
     // Uses standalone EcdsaVerifier (no private key required post-sign).
     let verifier = EcdsaVerifier::from_hex(&signed.public_key_hex)?;
     let hash = sha2::Digest::finalize(sha2::Sha256::new_with_prefix(
@@ -217,7 +217,7 @@ async fn run_cycle(
     if verifier.verify(&hash, &signed.signature_hex)? {
         println!("  [PROV]    ✓  ECDSA signature verified inline (secp256k1 / SHA-256)");
     } else {
-        println!("  [PROV]    ✗  ECDSA verification FAILED — investigate immediately");
+        println!("  [PROV]    ✗  ECDSA verification FAILED - investigate immediately");
     }
 
     // 4. Write signed output to disk
@@ -253,7 +253,7 @@ fn cmd_verify(path: &Path) -> Result<()> {
         println!("  Payload Hash : {}...", &signed.payload_hash_hex[..20]);
         println!("  Signature    : {}...", &signed.signature_hex[..20]);
     } else {
-        eprintln!("  ❌  ECDSA signature INVALID — output may have been tampered");
+        eprintln!("  ❌  ECDSA signature INVALID - output may have been tampered");
         std::process::exit(1);
     }
 

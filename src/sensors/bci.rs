@@ -1,4 +1,4 @@
-//! # BCI Sensor — EEG brainwave simulation
+//! # BCI Sensor - EEG brainwave simulation
 //!
 //! Simulates an Emotiv EPOC-compatible EEG device producing the five standard
 //! clinical frequency bands.

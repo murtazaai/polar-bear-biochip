@@ -6,7 +6,7 @@
 //! - Prime field:  p = 2²⁵⁶ − 2³² − 977
 //! - Curve:        y² ≡ x³ + 7  (mod p)   ← Weierstrass form
 //! - Base point:   G  (compressed, 33 bytes on-chain)
-//! - Order:        n  (256-bit prime — number of points in the group)
+//! - Order:        n  (256-bit prime - number of points in the group)
 //! - Cofactor:     h = 1
 //!
 //! ### Provenance signing (payload bytes P, private key d)
@@ -15,7 +15,7 @@
 //! 3. Ephemeral k sampled from CSPRNG
 //! 4. R = k·G;  r = R.x mod n
 //! 5. s = k⁻¹ · (e + r·d) mod n
-//! 6. Signature = (r, s) — 64 bytes compact r‖s
+//! 6. Signature = (r, s) - 64 bytes compact r‖s
 //!
 //! ### Offline verification
 //! 1. Recompute e = SHA-256(canonical_json)
@@ -25,7 +25,7 @@
 //! 5. Valid iff X.x mod n == r
 //!
 //! ### Why secp256k1?
-//! - Bitcoin / Ethereum / Solana native curve — same key material, zero extra dependencies
+//! - Bitcoin / Ethereum / Solana native curve - same key material, zero extra dependencies
 //! - 256-bit security at ~128-bit classical security level
 //! - 64-byte compact signatures (low overhead in JSON provenance records)
 
@@ -155,7 +155,7 @@ impl EcdsaSigner {
     /// Returns `true` iff the ECDSA signature is cryptographically valid for
     /// the canonical JSON of `signed.inference_result`.
     ///
-    /// This is a **pure function** — no private key material is required.
+    /// This is a **pure function** - no private key material is required.
     ///
     /// # Errors
     /// Returns an error on hex decode failure, invalid key material, or
@@ -171,7 +171,7 @@ impl EcdsaSigner {
 
 // ── EcdsaVerifier ─────────────────────────────────────────────────────────────
 
-/// Standalone public-key verifier — no private key required.
+/// Standalone public-key verifier - no private key required.
 ///
 /// Useful for offline audit tools that receive a [`SignedOutput`] JSON and
 /// need to validate it without access to the original signing process.

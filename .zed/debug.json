@@ -1,22 +1,58 @@
 [
   {
-    "label": "Debug polar-bear-biochip (demo mode)",
+    "label": "Clean polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["clean"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
     "adapter": "CodeLLDB",
-    "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
-    "args": ["run", "--demo", "--cycles", "3"],
-    "cwd": "${workspaceRoot}",
-    "env": {
-      "RUST_LOG": "polar_bear_biochip=debug"
-    }
   },
   {
-    "label": "Debug verify command",
+    "label": "Build & Debug polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["build"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
     "adapter": "CodeLLDB",
-    "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
-    "args": ["verify", "signed_outputs/cycle_001.json"],
-    "cwd": "${workspaceRoot}",
-    "env": {
-      "RUST_LOG": "polar_bear_biochip=debug"
-    }
-  }
+  },
+  {
+    "label": "Release Build & Debug polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "--release"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  // {
+  //   "label": "Debug polar-bear-biochip (demo mode)",
+  //   "adapter": "CodeLLDB",
+  //   "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
+  //   "args": ["run", "--demo", "--cycles", "3"],
+  //   "cwd": "${workspaceRoot}",
+  //   "env": {
+  //     "RUST_LOG": "polar_bear_biochip=debug",
+  //   },
+  // },
+  // {
+  //   "label": "Debug verify command",
+  //   "adapter": "CodeLLDB",
+  //   "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
+  //   "args": ["verify", "signed_outputs/cycle_001.json"],
+  //   "cwd": "${workspaceRoot}",
+  //   "env": {
+  //     "RUST_LOG": "polar_bear_biochip=debug",
+  //   },
+  // },
 ]

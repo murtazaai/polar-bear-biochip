@@ -1,4 +1,4 @@
-//! Integration tests — sensor layer
+//! Integration tests - sensor layer
 
 use polar_bear_biochip::{
     sensors::{

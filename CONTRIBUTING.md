@@ -41,7 +41,7 @@ cargo build --features ai-agent      # include Rig AI agent module (rig-core 0.3
 ### Run
 
 ```text
-# Demo mode — no API key required
+# Demo mode - no API key required
 cargo run -- run --demo --cycles 5
 
 # Live inference (requires ANTHROPIC_API_KEY)
@@ -84,12 +84,12 @@ cargo doc --no-deps --open           # build and view docs
 All style rules are enforced via [`rustfmt.toml`](./rustfmt.toml) and
 [`.clippy.toml`](./.clippy.toml).  The key rules:
 
-- **Width** — 100 columns
-- **Edition** — 2024
-- **Imports** — `Crate`-level granularity, `StdExternalCrate` grouping
-- **Trailing commas** — `Vertical` (multi-line only)
-- **Comments** — wrapped at 100 columns, normalised doc attributes
-- **Clippy** — `all` + `pedantic`; see `.clippy.toml` for allow-list
+- **Width** - 100 columns
+- **Edition** - 2024
+- **Imports** - `Crate`-level granularity, `StdExternalCrate` grouping
+- **Trailing commas** - `Vertical` (multi-line only)
+- **Comments** - wrapped at 100 columns, normalised doc attributes
+- **Clippy** - `all` + `pedantic`; see `.clippy.toml` for allow-list
 
 ---
 
@@ -99,7 +99,7 @@ All pushes to `main` or `develop` run:
 
 | Job | What it checks |
 |---|---|
-| `fmt` | `cargo fmt --check` — zero formatting diff |
+| `fmt` | `cargo fmt --check` - zero formatting diff |
 | `clippy` | zero warnings on stable + ai-agent feature |
 | `build` | release binary + release ai-agent binary |
 | `test` | all unit + integration tests |

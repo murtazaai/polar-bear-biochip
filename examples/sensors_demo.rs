@@ -1,4 +1,4 @@
-//! Sensor fusion demo — no API key required.
+//! Sensor fusion demo - no API key required.
 //!
 //! ```text
 //! cargo run --example sensors_demo
@@ -35,6 +35,6 @@ fn main() {
     println!("  Attention index   : measures β relative to α+θ (focus indicator).");
     println!("  Meditation index  : measures α relative to β+γ (calm indicator).");
     println!("  Cognitive load    : high β + low α → higher load.");
-    println!("  Emotional valence : (α − 0.6·β) / total_power  — negative = stress.");
+    println!("  Emotional valence : (α − 0.6·β) / total_power  - negative = stress.");
     println!("  Arousal level     : (β + γ) / total_power.");
 }

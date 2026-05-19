@@ -4,7 +4,7 @@ Resolved issues in `polar-bear-biochip`, with root cause and fix.
 
 ---
 
-## Fix 1 — `&PathBuf` parameter anti-pattern in `run_cycle`
+## Fix 1 - `&PathBuf` parameter anti-pattern in `run_cycle`
 
 **File**: `src/main.rs`
 
@@ -23,17 +23,17 @@ benefit. The idiomatic Rust type for a borrowed path is `&Path` (analogous to
 using `&str` instead of `&String`).
 
 **Fix**: Changed all `output_dir: &PathBuf` parameters to `output_dir: &Path`.
-Call sites pass `&cli.output_dir` as before — the coercion is implicit.
+Call sites pass `&cli.output_dir` as before - the coercion is implicit.
 
 ---
 
-## Fix 2 — Dead feature flag attribute `#[cfg(not(feature = "demo_only"))]`
+## Fix 2 - Dead feature flag attribute `#[cfg(not(feature = "demo_only"))]`
 
 **File**: `src/agent/biochip_agent.rs`
 
 **Symptom**: Attribute referenced a feature `demo_only` that was never declared
 in `Cargo.toml`. With `[features]` tables enforcing declared-only features since
-Rust 1.60, this silently compiled as `cfg(false)` — the guarded code was never
+Rust 1.60, this silently compiled as `cfg(false)` - the guarded code was never
 included in any build.
 
 **Fix**: Removed the dead `#[cfg(not(feature = "demo_only"))]` guard. Replaced
@@ -43,7 +43,7 @@ with the correct compile-time feature split:
 
 ---
 
-## Fix 3 — Duplicated `AlertLevel` match arms in `main.rs`
+## Fix 3 - Duplicated `AlertLevel` match arms in `main.rs`
 
 **File**: `src/main.rs`
 
@@ -67,7 +67,7 @@ Both `run_cycle` and `cmd_verify` now call `result.alert_level.to_string()` / `{
 
 ---
 
-## Fix 4 — Dependency version `=` exact pins (semver regression risk)
+## Fix 4 - Dependency version `=` exact pins (semver regression risk)
 
 **File**: `Cargo.toml`
 
@@ -88,13 +88,13 @@ toolchains).
 
 ---
 
-## Fix 5 — Missing `EcdsaVerifier` standalone struct
+## Fix 5 - Missing `EcdsaVerifier` standalone struct
 
 **File**: `src/provenance/ecdsa_signer.rs`
 
 **Symptom**: Offline verification required constructing an `EcdsaSigner`
 (which holds private key material) purely to call its `verify_signed` method.
-This violated least-privilege: audit tools should not need — or be given — a
+This violated least-privilege: audit tools should not need - or be given - a
 signing key.
 
 **Fix**: Added `EcdsaVerifier` struct (mirrors `polar-bear-hft-crypto`):

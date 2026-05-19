@@ -1,4 +1,4 @@
-//! ECDSA secp256k1 provenance demo — no API key required.
+//! ECDSA secp256k1 provenance demo - no API key required.
 //!
 //! Demonstrates:
 //! - Key generation and serialisation
@@ -33,7 +33,7 @@ fn main() -> anyhow::Result<()> {
         timestamp:        chrono::Utc::now(),
         sequence_id:      1,
         fused_reading:    fusion.sample(1),
-        cognitive_state:  "Balanced beta-alpha profile — focused engagement".to_string(),
+        cognitive_state:  "Balanced beta-alpha profile - focused engagement".to_string(),
         recommendations:  vec![
             "Maintain current activity".to_string(),
             "Hydrate within 30 minutes".to_string(),

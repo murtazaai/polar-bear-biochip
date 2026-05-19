@@ -29,12 +29,12 @@
     },
     "cognitive_state": "Balanced beta-alpha profile consistent with focused, productive cognitive engagement",
     "recommendations": [
-      "All readings within optimal operating range — maintain current activity and environment",
+      "All readings within optimal operating range - maintain current activity and environment",
       "Beta dominance confirms active problem-solving mode is engaged",
       "Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"
     ],
     "alert_level": "Normal",
-    "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range — maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
+    "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range - maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
   },
   "payload_hash_hex": "69742c192d788a14466946819a7737b54d554a2bc67e70e28dc5b281c992ac48",
   "signature_hex": "5e899dcd70864bb9237c3472a9fa404be34fbeea8a0867ac9550e04859fce7e7583ac3af45e9f211efb5e345c2a52ae50324351f12c16be5d76bfde468fcb2d1",

@@ -22,15 +22,15 @@ use serde::{Deserialize, Serialize};
 pub struct BciReading {
     /// UTC timestamp of this sample.
     pub timestamp: DateTime<Utc>,
-    /// Delta band  0.5–4 Hz  — deep sleep / unconscious processing.
+    /// Delta band  0.5–4 Hz  - deep sleep / unconscious processing.
     pub delta_hz: f64,
-    /// Theta band  4–8 Hz   — drowsiness, creativity, memory encoding.
+    /// Theta band  4–8 Hz   - drowsiness, creativity, memory encoding.
     pub theta_hz: f64,
-    /// Alpha band  8–12 Hz  — relaxed alertness, idle visual cortex.
+    /// Alpha band  8–12 Hz  - relaxed alertness, idle visual cortex.
     pub alpha_hz: f64,
-    /// Beta band   12–30 Hz — active thinking, focus, problem-solving.
+    /// Beta band   12–30 Hz - active thinking, focus, problem-solving.
     pub beta_hz: f64,
-    /// Gamma band  30–100 Hz — high-level cognition, cross-cortex binding.
+    /// Gamma band  30–100 Hz - high-level cognition, cross-cortex binding.
     pub gamma_hz: f64,
     /// Derived attention index  \[0.0 – 1.0\]  (β / (α + θ) normalised).
     pub attention_index: f64,
@@ -85,13 +85,13 @@ impl fmt::Display for AccelerometerReading {
 /// lateral dynamics.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActivityState {
-    /// Net magnitude ≤ 10.8 m/s² — no significant motion.
+    /// Net magnitude ≤ 10.8 m/s² - no significant motion.
     Stationary,
-    /// Periodic gait oscillation — 10.8–12.5 m/s².
+    /// Periodic gait oscillation - 10.8–12.5 m/s².
     Walking,
-    /// High-magnitude gait — > 12.5 m/s².
+    /// High-magnitude gait - > 12.5 m/s².
     Running,
-    /// High lateral jerk — rapid directional change (gesture).
+    /// High lateral jerk - rapid directional change (gesture).
     Gesture,
 }
 
@@ -109,11 +109,11 @@ pub struct FusedReading {
     pub bci: BciReading,
     /// Raw accelerometer sample contributing to this fusion.
     pub accelerometer: AccelerometerReading,
-    /// Derived cognitive load   \[0.0 – 1.0\] — high β + low α → higher load.
+    /// Derived cognitive load   \[0.0 – 1.0\] - high β + low α → higher load.
     pub cognitive_load: f64,
-    /// Derived emotional valence \[-1.0 – +1.0\] — negative = stress, positive = calm.
+    /// Derived emotional valence \[-1.0 – +1.0\] - negative = stress, positive = calm.
     pub emotional_valence: f64,
-    /// Derived arousal level    \[0.0 – 1.0\] — γ + β dominance.
+    /// Derived arousal level    \[0.0 – 1.0\] - γ + β dominance.
     pub arousal_level: f64,
 }
 
@@ -153,9 +153,9 @@ pub struct InferenceResult {
 pub enum AlertLevel {
     /// Readings within expected healthy operating range.
     Normal,
-    /// Elevated cognitive/physical stress — attention warranted.
+    /// Elevated cognitive/physical stress - attention warranted.
     Elevated,
-    /// Critical anomaly detected — immediate intervention required.
+    /// Critical anomaly detected - immediate intervention required.
     Critical,
 }
 

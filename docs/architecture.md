@@ -53,7 +53,7 @@
 
 ## Layer descriptions
 
-### `sensors/` — Multi-sensor streaming layer
+### `sensors/` - Multi-sensor streaming layer
 
 Produces fused EEG + motion data at a configurable cycle rate.
 
@@ -63,7 +63,7 @@ Produces fused EEG + motion data at a configurable cycle rate.
 | `accelerometer.rs` | 3-axis MEMS at 50 Hz, gait model | `AccelerometerReading` with activity state |
 | `fusion.rs` | Feature engineering (cognitive load / valence / arousal) | `FusedReading` |
 
-### `agent/` — Rig (ARC) LLM inference layer
+### `agent/` - Rig (ARC) LLM inference layer
 
 `BioChipAgent::infer(FusedReading)` → `InferenceResult`
 
@@ -75,7 +75,7 @@ Two compile-time backends, identical interface:
 | `cargo build --features ai-agent` | `rig-core` → `claude-sonnet-4-6` | ~400 ms (network) |
 | `--demo` flag | deterministic in-process | < 1 ms |
 
-### `provenance/` — Secp256k1 ECDSA provenance layer
+### `provenance/` - Secp256k1 ECDSA provenance layer
 
 Every `InferenceResult` is:
 1. Serialised to canonical JSON
@@ -83,7 +83,7 @@ Every `InferenceResult` is:
 3. ECDSA-signed with a session keypair (secp256k1)
 4. Written as `SignedOutput` JSON to `signed_outputs/cycle_NNN.json`
 
-Offline verification requires only the `public_key_hex` embedded in the file — no private key material.
+Offline verification requires only the `public_key_hex` embedded in the file - no private key material.
 
 ---
 

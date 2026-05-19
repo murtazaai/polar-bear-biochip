@@ -1,4 +1,4 @@
-//! Integration tests — ECDSA secp256k1 provenance layer
+//! Integration tests - ECDSA secp256k1 provenance layer
 
 use polar_bear_biochip::{
     provenance::{EcdsaSigner, EcdsaVerifier},

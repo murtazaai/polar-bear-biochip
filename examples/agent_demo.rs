@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
         #[cfg(feature = "ai-agent")]
         println!("  ⚠  Build with: cargo run --example agent_demo --features ai-agent");
     } else {
-        println!("  ✓  Live inference mode — model: {model}");
+        println!("  ✓  Live inference mode - model: {model}");
     }
     println!();
 
