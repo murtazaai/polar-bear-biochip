@@ -1,31 +1,31 @@
 {
   "inference_result": {
-    "timestamp": "2026-05-19T12:40:22.513130500Z",
+    "timestamp": "2026-05-19T12:44:35.227286849Z",
     "sequence_id": 1,
     "fused_reading": {
-      "timestamp": "2026-05-19T12:40:22.513058531Z",
+      "timestamp": "2026-05-19T12:44:35.227258368Z",
       "sequence_id": 1,
       "bci": {
-        "timestamp": "2026-05-19T12:40:22.513042578Z",
-        "delta_hz": 1.97,
-        "theta_hz": 5.76,
-        "alpha_hz": 10.83,
-        "beta_hz": 17.29,
-        "gamma_hz": 44.75,
-        "attention_index": 0.59,
-        "meditation_index": 0.69
+        "timestamp": "2026-05-19T12:44:35.227244733Z",
+        "delta_hz": 2.23,
+        "theta_hz": 5.92,
+        "alpha_hz": 9.79,
+        "beta_hz": 17.87,
+        "gamma_hz": 47.5,
+        "attention_index": 0.64,
+        "meditation_index": 0.59
       },
       "accelerometer": {
-        "timestamp": "2026-05-19T12:40:22.513058403Z",
-        "x": 0.23,
-        "y": -0.06,
-        "z": 9.91,
-        "magnitude": 9.91,
+        "timestamp": "2026-05-19T12:44:35.227258170Z",
+        "x": 0.18,
+        "y": -0.04,
+        "z": 9.79,
+        "magnitude": 9.79,
         "activity_state": "Stationary"
       },
-      "cognitive_load": 0.49,
-      "emotional_valence": 0.01,
-      "arousal_level": 0.76
+      "cognitive_load": 0.53,
+      "emotional_valence": -0.01,
+      "arousal_level": 0.78
     },
     "cognitive_state": "Balanced beta-alpha profile consistent with focused, productive cognitive engagement",
     "recommendations": [
@@ -36,8 +36,8 @@
     "alert_level": "Normal",
     "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range - maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is fully engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
   },
-  "payload_hash_hex": "e908e30de32d07d7a2588a0a5b7bcdafb00c0ee9f13a0dd74c47890c503c5d29",
-  "signature_hex": "fee4e33c07b57782646da875211c0a19fdefdb20526cdc3a6fe16fc1d8bf1d9220dec8c969a98b13555f236f8d17c7a21a4925139e3734eb6933ba26361d2059",
-  "public_key_hex": "04e1ae65ae175de968ba0115c5d8c5aa226ee5b03fe835c94630c78bc0b73e7071c8c04a97510365f16c12374162e41661b03fedac60996798f0dc72e0d296f893",
-  "signed_at": "2026-05-19T12:40:22.513777582Z"
+  "payload_hash_hex": "1465dd17b7bdf3c07208406c7305e818d13abdbbba9f8db5a5b196e10ba53b7d",
+  "signature_hex": "8065b45a998ce7c64152ce8d6baf5ff857804b9cfa3571543c705ccb321867a3591b7deda976d408bf9eaa2bd5eab1ec0fab9dcaaa269c9e607359a72338e659",
+  "public_key_hex": "04ef149531cf221b0ee9a78afc7e7bac97cf99623c92b45383201664a666b4250d0e3bc054c9ed1c3f3a04d7b8239563ab8d10c8af5d07690720fade9fb52c257f",
+  "signed_at": "2026-05-19T12:44:35.227598533Z"
 }
