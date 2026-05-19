@@ -1,65 +1,108 @@
 # polar-bear-biochip
 
-**Bio-Chip Intelligence Framework** — multi-sensor fusion + rig-core LLM orchestration + ECDSA-signed data provenance.
+**Bio-chip intelligence framework for Polar Bear Systems**  
+Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-signed provenance
+
+[![Rust](https://img.shields.io/badge/rust-1.85.0+-orange)](https://www.rust-lang.org/)
+[![Edition](https://img.shields.io/badge/Edition-2024-blue)](https://doc.rust-lang.org/edition-guide/)
+[![rig-core](https://img.shields.io/badge/rig--core-0.37-purple)](https://rig.rs)
+[![License: PBS](https://img.shields.io/badge/license-PBS-blue)](LICENSE-PBS)
 
 > Built by **[Murtaza Ali Imtiaz](https://github.com/murtazaai)** · Technology Lead · Polar Bear Systems · July 2019–Present
 
-Built at **Polar Bear Systems** as part of the superpower bio-chip intelligence initiative: bridging neurotechnology with decentralised AI infrastructure.
+---
+
+## Overview
+
+Core component of the Polar Bear Systems **superpower bio-chip intelligence platform**: bridges
+neurotechnology with decentralised AI infrastructure.
+
+Fuses real-time EEG brainwave data (δ θ α β γ) with 3-axis MEMS accelerometer readings into
+higher-order cognitive features, then routes them through a **rig-core (ARC)** LLM agent for
+classification. Every inference result is **ECDSA-signed** on secp256k1 for blockchain-grade,
+tamper-evident data provenance.
+
+> **Demo mode**: all operations run without an API key by default.  
+> Set `ANTHROPIC_API_KEY` (and optionally `--features ai-agent`) for live inference.
 
 ---
 
 ## Architecture
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                   polar-bear-biochip pipeline                  │
-│                                                                │
-│   ┌─────────────┐   ┌─────────────────┐                       │
-│   │  BCI Sensor │   │  Accelerometer  │   (tokio async tasks) │
-│   │  EEG bands  │   │  3-axis MEMS    │                       │
-│   │  δ θ α β γ  │   │  x / y / z m/s²│                       │
-│   └──────┬──────┘   └────────┬────────┘                       │
-│          │                   │                                 │
-│          └─────────┬─────────┘                                 │
-│                    ▼                                           │
-│           ┌─────────────────┐                                  │
-│           │  SensorFusion   │  FusedReading                   │
-│           │  cognitive_load │  emotional_valence               │
-│           │  arousal_level  │  attention_index                 │
-│           └────────┬────────┘                                  │
-│                    ▼                                           │
-│           ┌─────────────────┐                                  │
-│           │  BioChipAgent   │  rig-core / Anthropic API        │
-│           │  LLM inference  │  SYSTEM_PROMPT + sensor payload  │
-│           │  JSON response  │  cognitive_state + alert_level   │
-│           └────────┬────────┘                                  │
-│                    ▼                                           │
-│           ┌─────────────────┐                                  │
-│           │  EcdsaSigner    │  secp256k1 / SHA-256             │
-│           │  sign_result()  │  payload → hash → signature      │
-│           │  verify_signed()│  offline tamper detection        │
-│           └────────┬────────┘                                  │
-│                    ▼                                           │
-│           signed_outputs/cycle_NNN.json                        │
-│           { inference_result, payload_hash_hex,                │
-│             signature_hex, public_key_hex, signed_at }         │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                      polar-bear-biochip                             │
+├──────────────────────────────────┬──────────────────────────────────┤
+│         sensors layer            │        provenance layer          │
+│                                  │                                   │
+│  bci.rs       δ θ α β γ bands   │  ecdsa_signer.rs  secp256k1     │
+│               attention + med    │  EcdsaSigner      sign_result()  │
+│  accelerometer.rs  3-axis MEMS  │  EcdsaVerifier    from_hex()     │
+│               activity state     │  SHA-256 payload hashing        │
+│  fusion.rs    SensorFusion       │  64-byte r‖s compact signature  │
+│               cognitive_load     │  → SignedOutput JSON on disk     │
+│               emotional_valence  │                                   │
+│               arousal_level      │                                   │
+├──────────────────────────────────┴──────────────────────────────────┤
+│         agent layer  (feature = ai-agent)                           │
+│                                                                      │
+│  biochip_agent.rs   BioChipAgent                                    │
+│  ├── ai-agent feature ──► rig-core 0.37 · claude-sonnet-4-6        │
+│  └── fallback        ──► curl subprocess · same JSON payload        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## EEG Signal Processing
 
-| Layer | Technology |
-|---|---|
-| Language | Rust (edition 2021) |
-| Async runtime | tokio |
-| LLM agent framework | rig-core (0xPlaygrounds / ARC) |
-| Cryptography | k256 secp256k1 ECDSA + SHA-256 |
-| LLM provider | Anthropic Claude (via `/v1/messages`) |
-| Serialisation | serde / serde_json |
-| CLI | clap 4 |
-| Logging | tracing + tracing-subscriber |
+### Frequency bands (Berger / Niedermeyer taxonomy)
+
+| Band  | Range (Hz) | Cognitive correlate |
+|-------|-----------|---------------------|
+| Delta | 0.5–4     | Deep sleep, unconscious processing |
+| Theta | 4–8       | Drowsiness, creativity, memory encoding |
+| Alpha | 8–12      | Relaxed alertness, idle visual cortex, flow states |
+| Beta  | 12–30     | Active thinking, focus, problem-solving |
+| Gamma | 30–100    | High-level cognition, cross-cortical binding |
+
+### Derived cognitive features
+
+| Feature            | Formula | Range |
+|--------------------|---------|-------|
+| Attention index    | β / (α + θ + ε) × 0.6 | \[0, 1\] |
+| Meditation index   | α / (β + γ + ε) × 4.0 | \[0, 1\] |
+| Cognitive load     | β / (α + θ + ε) × 0.5 + activity_boost | \[0, 1\] |
+| Emotional valence  | (α − 0.6·β) / total_power | \[−1, +1\] |
+| Arousal level      | (β + γ) / total_power | \[0, 1\] |
+
+See [`docs/bci_math.md`](docs/bci_math.md) for full derivations and ICA pipeline notes.
+
+---
+
+## ECDSA Provenance
+
+### Signing (FIPS 186-5 / SEC 1 v2.0 — secp256k1)
+
+| Step | Operation |
+|------|-----------|
+| 1 | `canonical_json` = `serde_json::to_string(InferenceResult)` |
+| 2 | `e` = SHA-256(`canonical_json`) |
+| 3 | Sample ephemeral k from CSPRNG |
+| 4 | R = k·G;  r = R.x mod n |
+| 5 | s = k⁻¹(e + r·d) mod n |
+| 6 | Signature = r‖s, 64 bytes → hex-encoded in `SignedOutput.signature_hex` |
+
+### Offline verification
+
+```rust
+// No private key required — public key embedded in SignedOutput.
+let valid = EcdsaSigner::verify_signed(&signed_output)?;
+
+// Or use the standalone verifier:
+let verifier = EcdsaVerifier::from_hex(&signed_output.public_key_hex)?;
+verifier.verify(&sha256_hash, &signed_output.signature_hex)?;
+```
 
 ---
 
@@ -67,62 +110,58 @@ Built at **Polar Bear Systems** as part of the superpower bio-chip intelligence 
 
 ### Prerequisites
 
-- Rust ≥ 1.75 (stable)
-- `curl` on PATH (for live Anthropic API calls)
-- `ANTHROPIC_API_KEY` environment variable (optional — `--demo` works without it)
+| Tool | Version | Notes |
+|---|---|---|
+| Rust stable | ≥ 1.85.0 (MSRV) | `rustup update stable` |
+| `curl` | any | for non-ai-agent live inference |
+| `ANTHROPIC_API_KEY` | — | optional; demo mode if absent |
 
-### Build
+### Quick start
 
 ```bash
 git clone https://github.com/murtazaai/polar-bear-biochip
 cd polar-bear-biochip
-cargo build --release
-```
+cp .env.example .env          # fill in ANTHROPIC_API_KEY for live inference
 
-Expected output:
+# Demo mode — no API key required
+cargo run -- run --demo --cycles 5
 
-```
-   Compiling polar-bear-biochip v0.1.0
-    Finished release [optimized] target(s)
-```
+# Live inference
+cargo run --release -- run --cycles 10
 
-### Run — demo mode (no API key required)
+# With rig-core backend
+cargo run --release --features ai-agent -- run --cycles 5
 
-```bash
-cargo run -- --demo --cycles 5
-```
-
-### Run — live Anthropic inference
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-cargo run --release
-```
-
-### Verify a signed output
-
-```bash
-cargo run -- --verify signed_outputs/cycle_001.json
+# Verify a signed output file offline
+cargo run -- verify signed_outputs/cycle_001.json
 ```
 
 ### All CLI options
 
 ```
-polar-bear-biochip [OPTIONS]
+USAGE:
+  polar-bear-biochip run    [OPTIONS]
+  polar-bear-biochip verify <FILE>
 
-Options:
-  -c, --cycles <N>        Inference cycles (0 = infinite) [default: 5]
-  -d, --demo              Demo mode — no live API call
-  -o, --output-dir <DIR>  Signed JSON output directory [default: signed_outputs]
-  -v, --verify <FILE>     Verify a signed output file and exit
-  -m, --model <MODEL>     Anthropic model [default: claude-3-5-haiku-20241022]
-  -h, --help              Print help
-  -V, --version           Print version
+run options:
+  -c, --cycles <N>        Inference cycles (0 = infinite)  [default: 5]
+  -d, --demo              Force demo mode (no API call)
+  -o, --output-dir <DIR>  Signed JSON output directory     [default: signed_outputs]
+  -m, --model <MODEL>     Anthropic model                  [default: claude-sonnet-4-6]
+```
+
+### Examples
+
+```bash
+cargo run --example sensors_demo           # sensor fusion table (no key)
+cargo run --example provenance_demo        # ECDSA sign/verify/tamper (no key)
+cargo run --example agent_demo             # agent demo (demo fallback)
+cargo run --example agent_demo --features ai-agent   # live rig-core inference
 ```
 
 ---
 
-## Sample Output
+## Sample output
 
 ```
   ╔═══════════════════════════════════════════════════╗
@@ -131,12 +170,10 @@ Options:
   ╚═══════════════════════════════════════════════════╝
 
 INFO  Generating ECDSA keypair (secp256k1)...
-INFO  Public Key : 04ba35e2f5fb...311a3f31eb1a
-INFO  Initialising sensor fusion (BCI + Accelerometer)...
-INFO  Initialising rig-core LLM agent [model=claude-3-5-haiku-20241022]...
+INFO  Public Key : 04d23257ac0b...261c583a6ad7
 
   ──────────────────────────────────────────────────────
-  CYCLE 001/003  |  2026-05-18T14:07:27.114Z
+  CYCLE 001/005  |  2026-05-19T10:30:00.114Z
   ──────────────────────────────────────────────────────
   [SENSORS] BCI     α=11.5  β=19.2  θ=6.2  δ=2.3  γ=43.9 Hz
   [SENSORS] Accel   x=-0.05  y=+0.23  z=9.69 m/s²  |  Stationary
@@ -145,8 +182,8 @@ INFO  Initialising rig-core LLM agent [model=claude-3-5-haiku-20241022]...
   [RESULT]  Alert         : ✅ Normal
   [RESULT]  Cognitive State: Balanced beta-alpha profile — focused, productive engagement
   [RESULT]  Recommendations:
-              • All readings within optimal range — maintain current activity
-              • Beta dominance confirms active problem-solving mode is engaged
+              • Readings within optimal range — maintain current activity
+              • Beta dominance confirms active problem-solving mode
               • Schedule a 5-min micro-break within 45 minutes
   [PROV]    Hash      : 1d588fa83a0d8d1a9ffb...
   [PROV]    Signature : a304cd96500e3c4c4a5a...
@@ -154,133 +191,85 @@ INFO  Initialising rig-core LLM agent [model=claude-3-5-haiku-20241022]...
   [PROV]    ✓  Signed output → signed_outputs/cycle_001.json
 ```
 
-### Verify output
+---
 
-```
-  ✅  ECDSA signature VALID
+## Test inventory
 
-  Sequence ID  : 1
-  Signed at    : 2026-05-18 14:07:27 UTC
-  Cognitive    : Balanced beta-alpha profile — focused, productive engagement
-  Alert level  : Normal
-  Public Key   : 04ba35e2f5fb...311a3f31eb1a
-  Payload Hash : 1d588fa83a0d8d1a9ffb...
-  Signature    : a304cd96500e3c4c4a5a...
+### Unit tests (inline in source modules)
+
+| Module | Tests | Coverage |
+|---|---|---|
+| `sensors/bci.rs` | 3 | Band ranges, derived indices, Default |
+| `sensors/accelerometer.rs` | 4 | Gravity axis, magnitude, activity states, Default |
+| `sensors/fusion.rs` | 3 | Feature bounds, sequence_id, Default |
+| `agent/biochip_agent.rs` | 3 | Demo scenarios, Default, prompt builder |
+| `provenance/ecdsa_signer.rs` | 7 | Sign/verify, tamper, from_hex, verifier, geometry |
+
+### Integration tests (`tests/`)
+
+| File | Tests | Coverage |
+|---|---|---|
+| `tests/sensor_tests.rs` | 12 | BCI bands, accel geometry, fusion boundaries, timestamps |
+| `tests/provenance_tests.rs` | 14 | ECDSA geometry, sign/verify, tamper detection, key ops |
+
+**Total: 46 tests**
+
+```bash
+cargo test          # run all 46 tests
+cargo test sensors  # sensor layer only
+cargo test provenan # provenance layer only
 ```
 
 ---
 
-## Repository Structure
-
-```
-polar-bear-biochip/
-├── Cargo.toml
-├── README.md
-├── .github/workflows/ci.yml       ← CI: build + clippy + smoke test
-├── signed_outputs/                ← ECDSA-signed inference JSONs
-└── src/
-    ├── main.rs                    ← CLI, orchestration loop, verify command
-    ├── types.rs                   ← Shared structs (BciReading, FusedReading,
-    │                                 InferenceResult, SignedOutput, AlertLevel)
-    ├── sensors/
-    │   ├── mod.rs
-    │   ├── bci.rs                 ← EEG mock sensor (δ θ α β γ + derived indices)
-    │   ├── accelerometer.rs       ← 3-axis MEMS mock sensor
-    │   └── fusion.rs              ← Sensor fusion → cognitive_load / valence / arousal
-    ├── agent/
-    │   ├── mod.rs
-    │   └── biochip_agent.rs       ← rig-core–compatible LLM agent + demo mode
-    └── provenance/
-        ├── mod.rs
-        └── ecdsa_signer.rs        ← secp256k1 ECDSA sign + offline verify
-```
-
----
-
-## Signed Output Format
-
-Each inference cycle produces a tamper-evident JSON file:
+## Signed output format
 
 ```json
 {
   "inference_result": {
-    "timestamp": "2026-05-18T14:07:27.117Z",
+    "timestamp": "2026-05-19T10:30:00.117Z",
     "sequence_id": 1,
     "fused_reading": {
       "bci": { "alpha_hz": 11.5, "beta_hz": 19.2, "attention_index": 0.62, ... },
       "accelerometer": { "x": -0.05, "z": 9.69, "activity_state": "Stationary", ... },
       "cognitive_load": 0.51,
-      "emotional_valence": -0.00,
+      "emotional_valence": -0.0,
       "arousal_level": 0.75
     },
-    "cognitive_state": "Balanced beta-alpha profile...",
+    "cognitive_state": "Balanced beta-alpha profile — focused engagement",
     "alert_level": "Normal",
     "recommendations": [ "...", "...", "..." ]
   },
   "payload_hash_hex": "1d588fa83a0d8d1a9ffb...",
   "signature_hex":    "a304cd96500e3c4c4a5a...",
-  "public_key_hex":   "04ba35e2f5fb...",
-  "signed_at":        "2026-05-18T14:07:27.117Z"
+  "public_key_hex":   "04d23257ac0b...",
+  "signed_at":        "2026-05-19T10:30:00.117Z"
 }
 ```
 
-The signature binds the `inference_result` blob to the keypair. Tamper any field → verification fails.
+Tamper any field → SHA-256 hash changes → ECDSA signature invalidated.
 
 ---
 
-## rig-core Integration Note
-
-This repo implements the Anthropic LLM call directly (via `curl` subprocess) to remain buildable on Rust < 1.85. The `BioChipAgent` interface is identical to a rig-core agent:
+## rig-core integration
 
 ```rust
-// Current implementation (curl-based, compiles on Rust ≥1.75)
-let agent = BioChipAgent::new(model, demo);
+// Without --features ai-agent (curl subprocess — same JSON payload as rig-core):
+let agent = BioChipAgent::new("claude-sonnet-4-6", demo);
 let result = agent.infer(fused).await?;
 
-// rig-core drop-in (swap agent/biochip_agent.rs on Rust ≥1.85)
-let client = rig::providers::anthropic::Client::from_env();
-let agent  = client.agent(model).preamble(SYSTEM_PROMPT).max_tokens(512).build();
-let result = agent.prompt(&build_prompt(&fused)).await?;
+// With --features ai-agent (rig-core 0.37 backend — drop-in swap):
+// src/agent/biochip_agent.rs rig_inference():
+let client = anthropic::Client::from_env()?;
+let agent  = client.agent(model).preamble(PREAMBLE).max_tokens(512).build();
+agent.prompt(build_prompt(reading)).await
 ```
 
-See [`src/agent/biochip_agent.rs`](src/agent/biochip_agent.rs) for the exact swap comment.
-
----
-
-## Story Line
-
-### Situation
-Polar Bear Systems needed a bio-chip intelligence platform that combines real-time EEG/motion sensor data with LLM-powered cognitive inference and tamper-evident data provenance — bridging neurotechnology with decentralised AI infrastructure.
-
-### Task
-Design and build a production-ready Rust system that: (1) fuses multi-sensor streams asynchronously using tokio, (2) feeds fused readings to a rig-core LLM agent for cognitive state classification, and (3) ECDSA-signs every inference output on the secp256k1 curve for blockchain-grade provenance.
-
-### Action
-- Built a three-layer Rust architecture: sensor fusion → rig-core agent → ECDSA provenance.
-- Implemented mock BCI sensor (EEG: δ θ α β γ bands with ICA-inspired signal smoothing) and 3-axis accelerometer with gait simulation, fused into `cognitive_load`, `emotional_valence`, and `arousal_level`.
-- Wrote a rig-core-compatible `BioChipAgent` with a structured SYSTEM_PROMPT that classifies cognitive states into `Normal / Elevated / Critical` alert levels with actionable recommendations.
-- Implemented ECDSA secp256k1 signing (`k256` crate) with SHA-256 payload hashing; every `InferenceResult` is serialised to canonical JSON, hashed, signed, and written to disk as a verifiable `SignedOutput`.
-- Added `--verify` CLI command for offline signature verification — demonstrates tamper detection by modifying any field.
-
-### Result
-- Complete working Rust binary: `cargo build --release` → zero errors, zero warnings.
-- Demo mode (`--demo`) runs without credentials — full pipeline from sensor → LLM → ECDSA proof.
-- Live mode (`ANTHROPIC_API_KEY` set) hits the Anthropic Claude API with the same interface rig-core exposes.
-- ECDSA verification round-trips correctly on all signed outputs.
-- CI pipeline (GitHub Actions) runs on every push: build + check + smoke test.
+Both paths produce identical `InferenceResult` structures.
 
 ---
 
 ## License
 
-PBS License: [PBS License](./LICENSE-PBS)
-
----
-
-## Author
-
-**Murtaza Ali Imtiaz**
-
-- LinkedIn: [LinkedIn](https://linkedin.com/in/murtazai)
-- GitHub: [@murtazaai](https://github.com/murtazaai)
-- Portfolio: [murtazai.com](https://murtazai.com)
+Proprietary — © 2026 Murtaza Ali Imtiaz / Polar Bear Systems  
+See [LICENSE-PBS](LICENSE-PBS) for permitted use.

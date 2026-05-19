@@ -1,4 +1,4 @@
-//! Sensor layer: BCI, accelerometer, and fusion.
+//! Sensor layer: BCI (EEG), accelerometer, and sensor fusion.
 
 pub mod accelerometer;
 pub mod bci;

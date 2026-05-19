@@ -1,25 +1,37 @@
-//! Sensor fusion layer.
+//! # Sensor Fusion
 //!
 //! Combines the latest BCI (EEG) and accelerometer readings into a single
-//! `FusedReading` with three derived higher-order cognitive features:
+//! [`FusedReading`] with three higher-order cognitive feature scalars.
 //!
-//! | Feature            | Formula (simplified)                              |
-//! |--------------------|---------------------------------------------------|
-//! | cognitive_load     | β / (α + θ) normalised, boosted by activity       |
-//! | emotional_valence  | (α − β) / (α + β), damped by gamma dominance      |
-//! | arousal_level      | (β + γ) / total_power                             |
+//! ## Feature derivation
+//!
+//! | Feature            | Formula (simplified)                            | Range       |
+//! |--------------------|--------------------------------------------------|-------------|
+//! | `cognitive_load`   | β / (α + θ) + activity_boost                    | \[0.0, 1.0\] |
+//! | `emotional_valence`| (α − 0.6·β) / total_power                       | \[-1.0, 1.0\]|
+//! | `arousal_level`    | (β + γ) / total_power                           | \[0.0, 1.0\] |
+//!
+//! The `activity_boost` adds a small increment to cognitive load when the
+//! accelerometer reports Walking (0.05), Gesture (0.08), or Running (0.12),
+//! reflecting motor-cortex engagement.
 
-use crate::types::{ActivityState, FusedReading};
 use chrono::Utc;
 
-use super::{accelerometer::AccelerometerSensor, bci::BciSensor};
+use crate::{
+    sensors::{accelerometer::AccelerometerSensor, bci::BciSensor},
+    types::{ActivityState, FusedReading},
+};
 
+/// Combines a [`BciSensor`] and an [`AccelerometerSensor`] into a
+/// single-call fused sample.
 pub struct SensorFusion {
     bci:   BciSensor,
     accel: AccelerometerSensor,
 }
 
 impl SensorFusion {
+    /// Construct with freshly initialised sensors.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             bci:   BciSensor::new(),
@@ -27,7 +39,9 @@ impl SensorFusion {
         }
     }
 
-    /// Sample both sensors and fuse into one `FusedReading`.
+    /// Sample both sensors and fuse into one [`FusedReading`].
+    ///
+    /// `sequence_id` is typically the inference cycle counter.
     pub fn sample(&mut self, sequence_id: u64) -> FusedReading {
         let bci   = self.bci.sample();
         let accel = self.accel.sample();
@@ -35,9 +49,7 @@ impl SensorFusion {
         let total_power = bci.delta_hz + bci.theta_hz + bci.alpha_hz
                         + bci.beta_hz  + bci.gamma_hz;
 
-        // ── Cognitive load ──────────────────────────────────────────────────
-        // High beta relative to slow waves → higher mental effort.
-        // Physical activity adds a modest boost (motor cortex engagement).
+        // ── Cognitive load ────────────────────────────────────────────────────
         let activity_boost = match accel.activity_state {
             ActivityState::Stationary => 0.0,
             ActivityState::Walking    => 0.05,
@@ -48,15 +60,14 @@ impl SensorFusion {
             + activity_boost)
             .clamp(0.0, 1.0);
 
-        // ── Emotional valence ───────────────────────────────────────────────
-        // Alpha dominance → positive / calm.
-        // Beta / gamma dominance → stress / negative.
-        let emotional_valence = ((bci.alpha_hz - bci.beta_hz * 0.6) / (total_power + 1.0))
-            .clamp(-1.0, 1.0);
+        // ── Emotional valence ─────────────────────────────────────────────────
+        // Alpha dominance → positive / calm; beta/gamma → stress / negative.
+        let emotional_valence =
+            ((bci.alpha_hz - bci.beta_hz * 0.6) / (total_power + 1.0)).clamp(-1.0, 1.0);
 
-        // ── Arousal level ───────────────────────────────────────────────────
-        let arousal_level = ((bci.beta_hz + bci.gamma_hz) / (total_power + 1.0))
-            .clamp(0.0, 1.0);
+        // ── Arousal level ─────────────────────────────────────────────────────
+        let arousal_level =
+            ((bci.beta_hz + bci.gamma_hz) / (total_power + 1.0)).clamp(0.0, 1.0);
 
         FusedReading {
             timestamp:         Utc::now(),
@@ -70,6 +81,58 @@ impl SensorFusion {
     }
 }
 
+impl Default for SensorFusion {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 fn round2(v: f64) -> f64 {
     (v * 100.0).round() / 100.0
+}
+
+// ── unit tests ────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fused_features_within_expected_bounds() {
+        let mut fusion = SensorFusion::new();
+        for id in 1..=50_u64 {
+            let r = fusion.sample(id);
+            assert!(
+                (0.0..=1.0).contains(&r.cognitive_load),
+                "cognitive_load out of [0,1]: {}",
+                r.cognitive_load
+            );
+            assert!(
+                (-1.0..=1.0).contains(&r.emotional_valence),
+                "emotional_valence out of [-1,1]: {}",
+                r.emotional_valence
+            );
+            assert!(
+                (0.0..=1.0).contains(&r.arousal_level),
+                "arousal_level out of [0,1]: {}",
+                r.arousal_level
+            );
+        }
+    }
+
+    #[test]
+    fn sequence_id_preserved() {
+        let mut fusion = SensorFusion::new();
+        for id in [1_u64, 42, 1_000, u64::MAX / 2] {
+            let r = fusion.sample(id);
+            assert_eq!(r.sequence_id, id);
+        }
+    }
+
+    #[test]
+    fn default_constructs_without_panic() {
+        let mut fusion = SensorFusion::default();
+        let r = fusion.sample(1);
+        assert!(r.cognitive_load >= 0.0);
+    }
 }

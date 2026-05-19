@@ -1,0 +1,72 @@
+[
+  {
+    "label": "build",
+    "command": "cargo build",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "build --release",
+    "command": "cargo build --release",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "build --features ai-agent",
+    "command": "cargo build --features ai-agent",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "run demo (5 cycles)",
+    "command": "cargo run -- run --demo --cycles 5",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "run live (5 cycles)",
+    "command": "cargo run --release -- run --cycles 5",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "verify sample output",
+    "command": "cargo run -- verify signed_outputs/cycle_001.json",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "test",
+    "command": "cargo test",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "test --features ai-agent",
+    "command": "cargo test --features ai-agent",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "clippy",
+    "command": "cargo clippy --all-targets -- -D warnings",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "fmt",
+    "command": "cargo fmt",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "doc",
+    "command": "cargo doc --open --no-deps",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "example: sensors_demo",
+    "command": "cargo run --example sensors_demo",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "example: provenance_demo",
+    "command": "cargo run --example provenance_demo",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "example: agent_demo (ai-agent)",
+    "command": "cargo run --example agent_demo --features ai-agent",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  }
+]

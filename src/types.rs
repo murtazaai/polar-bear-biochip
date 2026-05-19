@@ -1,113 +1,194 @@
 //! Shared data structures for the Bio-Chip Intelligence Framework.
 //!
-//! Data flows:
-//!   BciReading + AccelerometerReading → FusedReading → InferenceResult → SignedOutput
+//! ## Data flow
+//!
+//! ```text
+//! BciReading ─┐
+//!             ├─► FusedReading ─► InferenceResult ─► SignedOutput
+//! AccelReading┘
+//! ```
+
+use std::fmt;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-// ─── Raw sensor readings ──────────────────────────────────────────────────────
+// ── Raw sensor readings ───────────────────────────────────────────────────────
 
 /// EEG brainwave reading from the BCI sensor (Emotiv EPOC-compatible).
-/// Frequency bands follow the standard clinical EEG taxonomy.
+///
+/// Frequency bands follow the standard clinical EEG taxonomy (see `docs/bci_math.md`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BciReading {
+    /// UTC timestamp of this sample.
     pub timestamp: DateTime<Utc>,
-    /// Delta  0.5–4 Hz  — deep sleep / unconscious processing
+    /// Delta band  0.5–4 Hz  — deep sleep / unconscious processing.
     pub delta_hz: f64,
-    /// Theta  4–8 Hz    — drowsiness, creativity, memory encoding
+    /// Theta band  4–8 Hz   — drowsiness, creativity, memory encoding.
     pub theta_hz: f64,
-    /// Alpha  8–12 Hz   — relaxed alertness, idle visual cortex
+    /// Alpha band  8–12 Hz  — relaxed alertness, idle visual cortex.
     pub alpha_hz: f64,
-    /// Beta   12–30 Hz  — active thinking, focus, problem-solving
+    /// Beta band   12–30 Hz — active thinking, focus, problem-solving.
     pub beta_hz: f64,
-    /// Gamma  30–100 Hz — high-level cognition, cross-cortex binding
+    /// Gamma band  30–100 Hz — high-level cognition, cross-cortex binding.
     pub gamma_hz: f64,
-    /// Derived attention index  [0.0 – 1.0]
+    /// Derived attention index  \[0.0 – 1.0\]  (β / (α + θ) normalised).
     pub attention_index: f64,
-    /// Derived meditation index [0.0 – 1.0]
+    /// Derived meditation index \[0.0 – 1.0\]  (α / (β + γ) normalised).
     pub meditation_index: f64,
 }
 
-/// 3-axis accelerometer reading (MEMS sensor, units: m/s²).
+impl fmt::Display for BciReading {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "δ={:.1} θ={:.1} α={:.1} β={:.1} γ={:.1} Hz | attn={:.2} med={:.2}",
+            self.delta_hz,
+            self.theta_hz,
+            self.alpha_hz,
+            self.beta_hz,
+            self.gamma_hz,
+            self.attention_index,
+            self.meditation_index,
+        )
+    }
+}
+
+/// 3-axis MEMS accelerometer reading (units: m/s²).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccelerometerReading {
+    /// UTC timestamp of this sample.
     pub timestamp: DateTime<Utc>,
+    /// Lateral acceleration (m/s²).
     pub x: f64,
+    /// Sagittal acceleration (m/s²).
     pub y: f64,
+    /// Vertical acceleration including gravity ≈ 9.81 m/s² at rest (m/s²).
     pub z: f64,
-    /// Euclidean magnitude √(x²+y²+z²)
+    /// Euclidean magnitude √(x²+y²+z²).
     pub magnitude: f64,
+    /// Inferred physical activity state.
     pub activity_state: ActivityState,
 }
 
-/// Inferred physical activity state from accelerometer data.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+impl fmt::Display for AccelerometerReading {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "x={:+.2} y={:+.2} z={:.2} m/s² | {:?}",
+            self.x, self.y, self.z, self.activity_state,
+        )
+    }
+}
+
+/// Inferred physical activity state derived from accelerometer magnitude and
+/// lateral dynamics.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActivityState {
+    /// Net magnitude ≤ 10.8 m/s² — no significant motion.
     Stationary,
+    /// Periodic gait oscillation — 10.8–12.5 m/s².
     Walking,
+    /// High-magnitude gait — > 12.5 m/s².
     Running,
+    /// High lateral jerk — rapid directional change (gesture).
     Gesture,
 }
 
-// ─── Fused reading ────────────────────────────────────────────────────────────
+// ── Fused reading ─────────────────────────────────────────────────────────────
 
-/// Sensor-fused reading combining BCI + accelerometer into higher-order features.
-/// This is the payload sent to the rig-core LLM agent for cognitive inference.
+/// Sensor-fused reading combining BCI + accelerometer into higher-order
+/// cognitive features. This is the payload forwarded to the LLM agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FusedReading {
+    /// UTC timestamp of fusion.
     pub timestamp: DateTime<Utc>,
+    /// Monotonically increasing cycle counter.
     pub sequence_id: u64,
+    /// Raw BCI sample contributing to this fusion.
     pub bci: BciReading,
+    /// Raw accelerometer sample contributing to this fusion.
     pub accelerometer: AccelerometerReading,
-    /// Derived cognitive load   [0.0 – 1.0]  (high beta + low alpha → higher load)
+    /// Derived cognitive load   \[0.0 – 1.0\] — high β + low α → higher load.
     pub cognitive_load: f64,
-    /// Derived emotional valence [-1.0 – +1.0] (negative = stress, positive = calm)
+    /// Derived emotional valence \[-1.0 – +1.0\] — negative = stress, positive = calm.
     pub emotional_valence: f64,
-    /// Derived arousal level    [0.0 – 1.0]  (gamma + beta dominance)
+    /// Derived arousal level    \[0.0 – 1.0\] — γ + β dominance.
     pub arousal_level: f64,
 }
 
-// ─── Inference result ─────────────────────────────────────────────────────────
+impl fmt::Display for FusedReading {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "#{} cogLoad={:.2} valence={:+.2} arousal={:.2}",
+            self.sequence_id, self.cognitive_load, self.emotional_valence, self.arousal_level,
+        )
+    }
+}
 
-/// Output of the rig-core LLM agent after analysing a FusedReading.
+// ── Inference result ──────────────────────────────────────────────────────────
+
+/// Output of the rig-core LLM agent after analysing a [`FusedReading`].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceResult {
+    /// UTC timestamp of the inference.
     pub timestamp: DateTime<Utc>,
+    /// Mirrors [`FusedReading::sequence_id`].
     pub sequence_id: u64,
+    /// The fused sensor reading that triggered this inference.
     pub fused_reading: FusedReading,
-    /// One-line cognitive state summary produced by the LLM
+    /// One-line cognitive state summary generated by the LLM.
     pub cognitive_state: String,
-    /// Actionable recommendations (2–4 bullet points)
+    /// Actionable recommendations (2–4 bullet points).
     pub recommendations: Vec<String>,
+    /// Severity classification.
     pub alert_level: AlertLevel,
-    /// Raw LLM response preserved for audit
+    /// Raw LLM response preserved verbatim for audit and replay.
     pub raw_llm_response: String,
 }
 
 /// Alert severity derived from the LLM's cognitive state classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AlertLevel {
-    /// Readings within expected healthy operating range
+    /// Readings within expected healthy operating range.
     Normal,
-    /// Elevated cognitive/physical stress — attention warranted
+    /// Elevated cognitive/physical stress — attention warranted.
     Elevated,
-    /// Critical anomaly detected — immediate intervention required
+    /// Critical anomaly detected — immediate intervention required.
     Critical,
 }
 
-// ─── Signed output (provenance layer) ────────────────────────────────────────
+impl fmt::Display for AlertLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AlertLevel::Normal   => write!(f, "✅ Normal"),
+            AlertLevel::Elevated => write!(f, "⚠️  Elevated"),
+            AlertLevel::Critical => write!(f, "🚨 CRITICAL"),
+        }
+    }
+}
 
-/// ECDSA-signed wrapper around an InferenceResult.
-/// Written to disk as JSON; verifiable offline using the embedded public key.
+// ── Signed output (provenance layer) ─────────────────────────────────────────
+
+/// ECDSA-signed wrapper around an [`InferenceResult`].
+///
+/// Written to disk as pretty-printed JSON and verifiable offline using the
+/// embedded uncompressed secp256k1 public key.
+///
+/// ## Tamper evidence
+/// Any modification to `inference_result` invalidates the SHA-256 hash,
+/// which in turn invalidates the ECDSA signature.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignedOutput {
+    /// The inference result being attested.
     pub inference_result: InferenceResult,
-    /// Hex-encoded SHA-256 digest of the canonical JSON payload
+    /// Hex-encoded SHA-256 digest of the canonical JSON payload (64 chars).
     pub payload_hash_hex: String,
-    /// Hex-encoded compact (r||s) ECDSA secp256k1 signature (64 bytes)
+    /// Hex-encoded compact (r‖s) ECDSA secp256k1 signature (128 chars).
     pub signature_hex: String,
-    /// Hex-encoded uncompressed secp256k1 public key (65 bytes)
+    /// Hex-encoded uncompressed secp256k1 public key 04‖x‖y (130 chars).
     pub public_key_hex: String,
+    /// UTC timestamp of the signing operation.
     pub signed_at: DateTime<Utc>,
 }

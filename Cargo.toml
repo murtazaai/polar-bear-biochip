@@ -1,66 +1,94 @@
 [package]
 name        = "polar-bear-biochip"
-version     = "0.1.0"
-edition     = "2021"
-description = "Bio-chip intelligence framework: multi-sensor fusion + rig-core LLM orchestration + ECDSA-signed data provenance"
-authors     = ["Murtaza Ali Imtiaz <self@murtazai.org>"]
-license     = "License-PBS"
+version     = "0.2.0"
+edition     = "2024"
+rust-version = "1.85.0"
+authors     = ["Murtaza Ali Imtiaz <very.kool.king@gmail.com>"]
+description = "Bio-chip intelligence framework: multi-sensor EEG+motion fusion + rig-core LLM orchestration + ECDSA-signed data provenance"
+license     = "LicensePBS"
 repository  = "https://github.com/murtazaai/polar-bear-biochip"
-keywords    = ["biochip", "rig", "ecdsa", "sensor-fusion", "agentic-ai"]
+keywords    = ["biochip", "bci", "rig", "ecdsa", "sensor-fusion"]
 categories  = ["science", "cryptography"]
+readme      = "README.md"
 
 [[bin]]
 name = "polar-bear-biochip"
 path = "src/main.rs"
 
+# Docs.rs - build all features, inject the docsrs cfg flag so conditional items
+# are visible in the hosted documentation.
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+# Workspace-wide lints - mirrors the rig upstream lint table.
+[lints.rust]
+unused       = "warn"
+missing_docs = "warn"
+
+[lints.clippy]
+all      = "warn"
+pedantic = "warn"
+# Allow common false-positive pedantic lints.
+module_name_repetitions = "allow"
+must_use_candidate      = "allow"
+missing_errors_doc      = "allow"
+
+# ── FEATURES ──────────────────────────────────────────────────────────────────
+[features]
+default  = []
+ai-agent = ["dep:rig-core", "dep:dotenvy"]
+
+# ── CORE AI (ARC) - optional ──────────────────────────────────────────────────
 [dependencies]
-# ─── Async runtime ────────────────────────────────────────────────────────────
-# tokio powers concurrent sensor streams and async agent calls
-tokio              = { version = "1",     features = ["full"] }
+# Rig (ARC) - Agentic AI framework (optional; gates LLM inference via rig-core)
+rig-core = { version = "^0.37", features = ["rustls"], optional = true }
 
-# ─── ECDSA secp256k1 provenance ───────────────────────────────────────────────
-# k256: secp256k1 ECDSA for blockchain-grade signed output provenance
-# (same curve used by Bitcoin, Ethereum, and Solana wallet signatures)
-k256               = { version = "0.13",  features = ["ecdsa"] }
-# Pin base64ct to avoid downstream edition2024 Cargo requirement on older toolchains
-base64ct           = "=1.6.0"
+# ── ASYNC RUNTIME ─────────────────────────────────────────────────────────────
+tokio = { version = "^1", features = ["full"] }
 
-# ─── Serialisation ────────────────────────────────────────────────────────────
-serde              = { version = "1",     features = ["derive"] }
-serde_json         = "1"
+# ── CRYPTOGRAPHY ──────────────────────────────────────────────────────────────
+k256 = { version = "^0.13", features = ["ecdsa", "sha256", "arithmetic"] }
+sha2 = "^0.10"
 
-# ─── Structured logging ───────────────────────────────────────────────────────
-tracing            = "0.1"
-tracing-subscriber = { version = "0.3",  features = ["env-filter", "fmt"] }
+# ── ENCODING ──────────────────────────────────────────────────────────────────
+hex = "^0.4"
 
-# ─── Sensor simulation ────────────────────────────────────────────────────────
-rand               = "0.8"
+# ── SERIALIZATION ─────────────────────────────────────────────────────────────
+serde      = { version = "^1", features = ["derive"] }
+serde_json = "^1"
 
-# ─── Cryptography ─────────────────────────────────────────────────────────────
-sha2               = "0.10"
-hex                = "0.4"
+# ── CLI ───────────────────────────────────────────────────────────────────────
+clap = { version = "^4", features = ["derive"] }
 
-# ─── Timestamps ───────────────────────────────────────────────────────────────
-chrono             = { version = "0.4",  features = ["serde"] }
+# ── LOGGING ───────────────────────────────────────────────────────────────────
+tracing            = "^0.1"
+tracing-subscriber = { version = "^0.3", features = ["env-filter", "fmt"] }
 
-# ─── Error handling ───────────────────────────────────────────────────────────
-anyhow             = "1"
+# ── ERROR HANDLING ────────────────────────────────────────────────────────────
+anyhow    = "^1"
+thiserror = "^2"
 
-# ─── CLI ──────────────────────────────────────────────────────────────────────
-# Pin to 4.4.x — avoids transitive clap_lex ≥1.0 which requires Cargo ≥1.85
-clap               = { version = "=4.4.18", features = ["derive"] }
+# ── TIME ──────────────────────────────────────────────────────────────────────
+chrono = { version = "^0.4", features = ["serde"] }
 
-# ─── NOTE on rig-core ─────────────────────────────────────────────────────────
-# rig-core (0xPlaygrounds/rig) is listed in the production tech stack.
-# The rig-core crate transitively depends on reqwest → idna_adapter ≥1.2 which
-# requires Cargo edition2024 (Cargo ≥1.85). This project therefore implements
-# the Anthropic API call directly over HTTP using std::process::Command + curl,
-# mirroring exactly what rig-core does internally. On a Rust ≥1.85 toolchain
-# simply swap the agent module for rig-core; the interface is identical.
-# Reference: https://github.com/0xPlaygrounds/rig  (crate: rig-core ≥0.9)
+# ── RANDOM ────────────────────────────────────────────────────────────────────
+rand = "^0.8"
 
+# ── ENV CONFIG ────────────────────────────────────────────────────────────────
+dotenvy = { version = "^0.15", optional = true }
+
+# ── DEV / TEST ────────────────────────────────────────────────────────────────
+[dev-dependencies]
+pretty_assertions = "^1"
+tokio-test        = "^0.4"
+
+# ── RELEASE PROFILE ───────────────────────────────────────────────────────────
+# Mirrors rig's workspace release profile: maximise performance and
+# minimise binary size through LTO and single-codegen-unit compilation.
 [profile.release]
 opt-level     = 3
 lto           = true
 codegen-units = 1
-strip         = true
+panic         = "abort"
+strip         = "debuginfo"

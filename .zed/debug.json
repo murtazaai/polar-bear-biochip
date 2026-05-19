@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Debug polar-bear-biochip (demo mode)",
+    "adapter": "CodeLLDB",
+    "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
+    "args": ["run", "--demo", "--cycles", "3"],
+    "cwd": "${workspaceRoot}",
+    "env": {
+      "RUST_LOG": "polar_bear_biochip=debug"
+    }
+  },
+  {
+    "label": "Debug verify command",
+    "adapter": "CodeLLDB",
+    "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
+    "args": ["verify", "signed_outputs/cycle_001.json"],
+    "cwd": "${workspaceRoot}",
+    "env": {
+      "RUST_LOG": "polar_bear_biochip=debug"
+    }
+  }
+]

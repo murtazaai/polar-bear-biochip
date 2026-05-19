@@ -1,44 +1,18 @@
-/target
+# Rust build artifacts
+/target/
 Cargo.lock
-.env.local
+
+# Secrets - never commit
+.env
 *.pem
 *.key
+
+# Signed provenance outputs - exclude run artefacts, keep the sample
 signed_outputs/*.json
+!signed_outputs/cycle_001.json
 !signed_outputs/.gitkeep
 
-# ── Cargo / Rust ──────────────────────────────────────────────────
-**/*.rs.bk
-
-# ── Environment / secrets - NEVER COMMIT ─────────────────────────
-.env
-# .env.*
-/keys/
-*.enc
-**/secrets/
-**/*_secret*
-**/*_private_key*
-**/*api_key*
-config/keys.*
-
-# ── IDE / editor ──────────────────────────────────────────────────
-.vscode/
-.idea/
-*.code-workspace
-.cursor/
-*.swp
-*.swo
-
-# ── Logs / databases ──────────────────────────────────────────────
-/logs/
-*.log
-*.log-*
-*.sqlite
-*.db
-
-# ── OS artifacts ──────────────────────────────────────────────────
+# Editor / OS noise
 .DS_Store
-Thumbs.db
-
-# ── Mutation testing ──────────────────────────────────────────────
-/mutants.out
-/mutants.out.old
+.idea/
+*.swp

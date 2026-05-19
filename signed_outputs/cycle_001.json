@@ -1,0 +1,43 @@
+{
+  "inference_result": {
+    "timestamp": "2026-05-18T14:11:47.794911699Z",
+    "sequence_id": 1,
+    "fused_reading": {
+      "timestamp": "2026-05-18T14:11:47.794900777Z",
+      "sequence_id": 1,
+      "bci": {
+        "timestamp": "2026-05-18T14:11:47.794892996Z",
+        "delta_hz": 2.16,
+        "theta_hz": 5.82,
+        "alpha_hz": 11.74,
+        "beta_hz": 16.93,
+        "gamma_hz": 41.04,
+        "attention_index": 0.55,
+        "meditation_index": 0.8
+      },
+      "accelerometer": {
+        "timestamp": "2026-05-18T14:11:47.794900723Z",
+        "x": -0.02,
+        "y": -0.04,
+        "z": 9.87,
+        "magnitude": 9.87,
+        "activity_state": "Stationary"
+      },
+      "cognitive_load": 0.46,
+      "emotional_valence": 0.02,
+      "arousal_level": 0.74
+    },
+    "cognitive_state": "Balanced beta-alpha profile consistent with focused, productive cognitive engagement",
+    "recommendations": [
+      "All readings within optimal operating range — maintain current activity and environment",
+      "Beta dominance confirms active problem-solving mode is engaged",
+      "Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"
+    ],
+    "alert_level": "Normal",
+    "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range — maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
+  },
+  "payload_hash_hex": "69742c192d788a14466946819a7737b54d554a2bc67e70e28dc5b281c992ac48",
+  "signature_hex": "5e899dcd70864bb9237c3472a9fa404be34fbeea8a0867ac9550e04859fce7e7583ac3af45e9f211efb5e345c2a52ae50324351f12c16be5d76bfde468fcb2d1",
+  "public_key_hex": "04d23257ac0be562d82b2c918f304175757c571357637fe5e3334b424231117169eb79b93e3fd1e50d113e21e302f2f99b14d84409850263f98492261c583a6ad7",
+  "signed_at": "2026-05-18T14:11:47.795183477Z"
+}

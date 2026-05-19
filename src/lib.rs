@@ -1,0 +1,46 @@
+//! # polar-bear-biochip
+//!
+//! Bio-chip intelligence framework for Polar Bear Systems.
+//!
+//! ## Architecture
+//!
+//! ```text
+//! ┌─────────────────────────────────────────────────────────────┐
+//! │                    polar-bear-biochip                       │
+//! ├─────────────────────────────────────────────────────────────┤
+//! │  sensors::bci           EEG (δ θ α β γ bands + indices)    │
+//! │  sensors::accelerometer 3-axis MEMS (m/s²)                  │
+//! │  sensors::fusion        SensorFusion → FusedReading         │
+//! ├─────────────────────────────────────────────────────────────┤
+//! │  agent::biochip_agent   rig-core LLM agent (ai-agent feat) │
+//! │                         curl fallback (no feature flag)     │
+//! ├─────────────────────────────────────────────────────────────┤
+//! │  provenance::ecdsa_signer  secp256k1 ECDSA sign + verify    │
+//! │                            SHA-256 payload hashing          │
+//! ├─────────────────────────────────────────────────────────────┤
+//! │  types   BciReading · AccelerometerReading · FusedReading   │
+//! │          InferenceResult · SignedOutput · AlertLevel        │
+//! └─────────────────────────────────────────────────────────────┘
+//! ```
+//!
+//! ## Usage
+//!
+//! ```rust,no_run
+//! use polar_bear_biochip::{
+//!     sensors::fusion::SensorFusion,
+//!     provenance::ecdsa_signer::EcdsaSigner,
+//! };
+//!
+//! let mut fusion = SensorFusion::new();
+//! let reading = fusion.sample(1);
+//! println!("Cognitive load: {:.2}", reading.cognitive_load);
+//!
+//! let signer = EcdsaSigner::generate();
+//! println!("Public key: {}", signer.public_key_hex());
+//! ```
+
+pub mod agent;
+pub mod error;
+pub mod provenance;
+pub mod sensors;
+pub mod types;

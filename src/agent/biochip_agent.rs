@@ -1,49 +1,74 @@
-//! rig-core–compatible LLM agent for cognitive state inference.
+//! # Bio-Chip LLM Agent
 //!
-//! ## Interface contract
-//! This module presents the same public interface that a rig-core agent exposes:
+//! A rig-core agent (when compiled with `--features ai-agent`) that analyses
+//! fused sensor readings and returns a structured cognitive state decision.
 //!
-//! ```ignore
-//! let agent  = BioChipAgent::new(model, demo_mode);
-//! let result = agent.infer(fused_reading).await?;
+//! ## Feature flag
+//!
+//! | Build | Agent backend |
+//! |-------|--------------|
+//! | `cargo build` | `curl` subprocess → Anthropic `/v1/messages` |
+//! | `cargo build --features ai-agent` | `rig-core` → `claude-sonnet-4-6` |
+//!
+//! Both backends share the same system prompt, JSON response schema, and
+//! public `BioChipAgent` interface.  The `ai-agent` feature is simply a
+//! compile-time transport switch.
+//!
+//! ## Architecture
+//!
+//! ```text
+//! User sensor reading
+//!     │
+//!     ▼
+//! BioChipAgent::infer(FusedReading)
+//!     │  system prompt: cognitive classification schema
+//!     │  user prompt:   sensor payload (bands + derived features)
+//!     │
+//!     ├── ai-agent feature ──► rig-core anthropic::Client
+//!     │                              │
+//!     └── fallback ────────► curl /v1/messages subprocess
+//!                                    │
+//!                                    ▼
+//!                           InferenceResult (JSON parsed)
+//!                                    │
+//!                                    ▼
+//!                           EcdsaSigner::sign_result()
 //! ```
-//!
-//! ## HTTP transport
-//! The Anthropic `/v1/messages` API is called via `std::process::Command` + `curl`
-//! — the same JSON payload structure that rig-core serialises internally.
-//! To swap in rig-core on a ≥1.85 toolchain, replace `live_inference()` with:
-//!
-//! ```ignore
-//! let client = rig::providers::anthropic::Client::from_env();
-//! let agent  = client.agent(&self.model).preamble(SYSTEM_PROMPT).max_tokens(512).build();
-//! Ok(agent.prompt(&build_prompt(reading)).await?)
-//! ```
-//!
-//! ## Demo mode
-//! When `ANTHROPIC_API_KEY` is absent or `--demo` is passed, the agent returns
-//! deterministic simulated responses so the repo is runnable with no credentials.
 
 use anyhow::{Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 
 use crate::types::{AlertLevel, FusedReading, InferenceResult};
 
-// ─── System prompt ── mirrors rig-core `.preamble()` ─────────────────────────
+#[cfg(feature = "ai-agent")]
+use rig_core::{
+    client::{CompletionClient, ProviderClient},
+    completion::Prompt,
+    providers::anthropic,
+};
 
-const SYSTEM_PROMPT: &str = "You are the inference core of a bio-chip intelligence system. \
-You receive fused readings from an EEG sensor and a 3-axis accelerometer. \
-Respond ONLY in this JSON format — no markdown, no preamble, no extra text:\n\
-{\"cognitive_state\":\"<one-sentence summary>\",\"alert_level\":\"Normal\",\
+// ── System prompt ─────────────────────────────────────────────────────────────
+
+const PREAMBLE: &str = "\
+You are the inference core of a bio-chip intelligence system at Polar Bear Systems. \
+You receive fused readings from an EEG sensor and a 3-axis MEMS accelerometer. \
+Respond ONLY in this exact JSON format — no markdown, no preamble, no trailing text:\n\
+{\"cognitive_state\":\"<one-sentence summary>\",\
+\"alert_level\":\"Normal\",\
 \"recommendations\":[\"<rec 1>\",\"<rec 2>\",\"<rec 3>\"]}\n\
 alert_level must be exactly: Normal | Elevated | Critical.\n\
-Normal=healthy range. Elevated=stress warrants attention. Critical=immediate intervention.\n\
-Interpretation: delta/theta dominance=fatigue; high beta+low alpha=cognitive overload; \
-emotional_valence<-0.3=stress marker; Running+high beta=fight-or-flight; \
-alpha coherence 0.7-0.9+low load=optimal flow state.";
+Normal   = healthy operating range.\n\
+Elevated = cognitive or physical stress — attention warranted.\n\
+Critical = anomaly requiring immediate intervention.\n\
+Interpretation guide:\n\
+- Delta/theta dominance → fatigue or drowsiness risk.\n\
+- High beta + low alpha  → elevated cognitive load.\n\
+- emotional_valence < -0.30 → stress or anxiety marker.\n\
+- Running + high beta    → fight-or-flight state.\n\
+- Alpha coherence 0.7–0.9 + low load → optimal flow state.";
 
-// ─── Anthropic API wire types ─────────────────────────────────────────────────
+// ── Anthropic API wire types (used by curl fallback only) ─────────────────────
 
 #[derive(Serialize)]
 struct ApiRequest<'a> {
@@ -69,42 +94,94 @@ struct ApiContent {
     text: Option<String>,
 }
 
-// ─── Agent ────────────────────────────────────────────────────────────────────
+// ── Agent ─────────────────────────────────────────────────────────────────────
 
+/// Rig (ARC) Bio-Chip LLM agent.
+///
+/// With `--features ai-agent` the backend is `rig-core` → `claude-sonnet-4-6`.
+/// Without the feature, inference falls back to a `curl` subprocess calling
+/// the Anthropic REST API directly — identical JSON payload, same schema.
 pub struct BioChipAgent {
+    /// Anthropic model identifier.
     model: String,
+    /// When `true`, returns deterministic demo responses without any API call.
     demo:  bool,
 }
 
 impl BioChipAgent {
+    /// Construct a new agent.
+    ///
+    /// Pass `demo = true` to skip all live API calls (no key required).
+    #[must_use]
     pub fn new(model: &str, demo: bool) -> Self {
+        #[cfg(feature = "ai-agent")]
+        let _ = dotenvy::dotenv();
+
         Self { model: model.to_string(), demo }
     }
 
+    /// Run one full inference cycle.
+    ///
+    /// # Errors
+    /// Returns an error if the API call fails or the response cannot be parsed.
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
         let raw = if self.demo {
             self.demo_response(&reading)
         } else {
-            self.live_inference(&reading)?
+            self.live_inference(&reading).await?
         };
         self.parse_response(reading, raw)
     }
 
-    // ── Live call to Anthropic /v1/messages ───────────────────────────────────
+    // ── Live inference ────────────────────────────────────────────────────────
 
-    fn live_inference(&self, reading: &FusedReading) -> Result<String> {
+    async fn live_inference(&self, reading: &FusedReading) -> Result<String> {
+        #[cfg(feature = "ai-agent")]
+        {
+            return self.rig_inference(reading).await;
+        }
+        #[cfg(not(feature = "ai-agent"))]
+        {
+            self.curl_inference(reading)
+        }
+    }
+
+    // ── rig-core backend (feature = ai-agent) ─────────────────────────────────
+
+    #[cfg(feature = "ai-agent")]
+    async fn rig_inference(&self, reading: &FusedReading) -> Result<String> {
+        let client = anthropic::Client::from_env()
+            .context("ANTHROPIC_API_KEY not set — pass --demo for offline mode")?;
+        let agent  = client
+            .agent(self.model.as_str())
+            .preamble(PREAMBLE)
+            .max_tokens(512)
+            .build();
+
+        agent
+            .prompt(build_prompt(reading))
+            .await
+            .map_err(|e| anyhow::anyhow!("rig-core inference error: {e}"))
+    }
+
+    // ── curl fallback (no ai-agent feature) ───────────────────────────────────
+    // Mirrors the exact JSON payload that rig-core serialises internally.
+    // To switch to rig-core: `cargo build --features ai-agent`.
+
+    #[cfg(not(feature = "ai-agent"))]
+    fn curl_inference(&self, reading: &FusedReading) -> Result<String> {
+        use std::process::Command;
+
         let api_key = std::env::var("ANTHROPIC_API_KEY")
             .context("ANTHROPIC_API_KEY not set — pass --demo for offline demo mode")?;
-
-        let prompt = build_prompt(reading);
 
         let body = serde_json::to_string(&ApiRequest {
             model:      self.model.as_str(),
             max_tokens: 512,
-            system:     SYSTEM_PROMPT,
-            messages:   vec![ApiMessage { role: "user", content: prompt.as_str() }],
+            system:     PREAMBLE,
+            messages:   vec![ApiMessage { role: "user", content: &build_prompt(reading) }],
         })
-        .context("Failed to serialise API request")?;
+        .context("failed to serialise API request")?;
 
         let output = Command::new("curl")
             .args([
@@ -116,34 +193,37 @@ impl BioChipAgent {
                 "--data",   body.as_str(),
             ])
             .output()
-            .context("curl subprocess failed — ensure curl is installed")?;
+            .context("curl subprocess failed — install curl or use --demo")?;
 
         if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            anyhow::bail!("Anthropic API HTTP error\nstderr: {stderr}\nbody: {stdout}");
+            anyhow::bail!(
+                "Anthropic API error ({})\nstderr: {}\nbody: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr),
+                String::from_utf8_lossy(&output.stdout),
+            );
         }
 
         let resp: ApiResponse = serde_json::from_slice(&output.stdout)
-            .context("Could not parse Anthropic response JSON")?;
+            .context("failed to parse Anthropic response")?;
 
         resp.content
             .into_iter()
             .find_map(|c| c.text)
-            .context("Empty content array in Anthropic response")
+            .context("empty content array in Anthropic response")
     }
 
     // ── Demo responses ────────────────────────────────────────────────────────
 
     fn demo_response(&self, r: &FusedReading) -> String {
         if r.bci.delta_hz > 3.2 || r.bci.theta_hz > 7.0 {
-            r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue — microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity now","Initiate a 20-minute NREM power-nap protocol to restore prefrontal function","Re-schedule all demanding tasks to the post-recovery window"]}"#
+            r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue — microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity","Initiate a 20-minute NREM power-nap protocol to restore prefrontal cortex function","Re-schedule all cognitively demanding tasks to the post-recovery window"]}"#
         } else if r.cognitive_load > 0.72 || r.emotional_valence < -0.30 {
             r#"{"cognitive_state":"Elevated cognitive load with acute mental stress markers in beta-band dominance","alert_level":"Elevated","recommendations":["Decompose the current task into atomic sub-tasks to reduce working-memory pressure","Engage in 2 minutes of slow diaphragmatic breathing to attenuate beta dominance","Schedule a 10-minute active recovery block before resuming deep-focus work"]}"#
         } else if r.bci.meditation_index > 0.58 && r.cognitive_load < 0.38 {
-            r#"{"cognitive_state":"Deep alpha-dominant meditative state — optimal window for creative and divergent thinking","alert_level":"Normal","recommendations":["Leverage this flow window for insight-driven or creative work — interruptions are costly","Maintain ambient temperature and hydration to sustain alpha coherence","Log this session; alpha coherence of this quality is a trainable biometric target"]}"#
+            r#"{"cognitive_state":"Deep alpha-dominant meditative state — optimal window for creative and divergent thinking","alert_level":"Normal","recommendations":["Leverage this flow window for insight-driven or creative work — interruptions are costly","Maintain ambient temperature and hydration to sustain alpha coherence","Log this session: alpha coherence of this quality is a trainable biometric target"]}"#
         } else {
-            r#"{"cognitive_state":"Balanced beta-alpha profile consistent with focused, productive cognitive engagement","alert_level":"Normal","recommendations":["All readings within optimal operating range — maintain current activity and environment","Beta dominance confirms active problem-solving mode is engaged","Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"]}"#
+            r#"{"cognitive_state":"Balanced beta-alpha profile consistent with focused, productive cognitive engagement","alert_level":"Normal","recommendations":["All readings within optimal operating range — maintain current activity and environment","Beta dominance confirms active problem-solving mode is fully engaged","Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation"]}"#
         }
         .to_string()
     }
@@ -159,7 +239,7 @@ impl BioChipAgent {
             .trim();
 
         let v: serde_json::Value = serde_json::from_str(clean)
-            .map_err(|e| anyhow::anyhow!("LLM JSON parse error: {e}\nRaw:\n{raw}"))?;
+            .with_context(|| format!("LLM JSON parse error — raw response:\n{raw}"))?;
 
         let cognitive_state = v["cognitive_state"]
             .as_str()
@@ -189,7 +269,13 @@ impl BioChipAgent {
     }
 }
 
-// ─── Prompt builder ───────────────────────────────────────────────────────────
+impl Default for BioChipAgent {
+    fn default() -> Self {
+        Self::new("claude-sonnet-4-6", true)
+    }
+}
+
+// ── Prompt builder ────────────────────────────────────────────────────────────
 
 fn build_prompt(r: &FusedReading) -> String {
     format!(
@@ -200,11 +286,50 @@ fn build_prompt(r: &FusedReading) -> String {
          Accel (m/s²): x={x:+.2} y={y:+.2} z={z:.2} mag={m:.2} state={state:?}",
         seq   = r.sequence_id,
         ts    = r.timestamp.format("%Y-%m-%dT%H:%M:%SZ"),
-        d     = r.bci.delta_hz,  t = r.bci.theta_hz,
-        a     = r.bci.alpha_hz,  b = r.bci.beta_hz, g = r.bci.gamma_hz,
+        d     = r.bci.delta_hz,  t  = r.bci.theta_hz,
+        a     = r.bci.alpha_hz,  b  = r.bci.beta_hz,  g  = r.bci.gamma_hz,
         att   = r.bci.attention_index, med = r.bci.meditation_index,
         cl    = r.cognitive_load, ev = r.emotional_valence, ar = r.arousal_level,
-        x     = r.accelerometer.x, y = r.accelerometer.y, z = r.accelerometer.z,
-        m     = r.accelerometer.magnitude, state = r.accelerometer.activity_state,
+        x     = r.accelerometer.x,    y = r.accelerometer.y,
+        z     = r.accelerometer.z,    m = r.accelerometer.magnitude,
+        state = r.accelerometer.activity_state,
     )
+}
+
+// ── unit tests ────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::sensors::fusion::SensorFusion;
+
+    #[test]
+    fn demo_mode_parses_all_scenarios() {
+        let agent = BioChipAgent::new("claude-sonnet-4-6", true);
+        let mut fusion = SensorFusion::new();
+
+        // Run enough cycles to exercise multiple demo branches.
+        for id in 1..=20_u64 {
+            let reading = fusion.sample(id);
+            // tokio::runtime not needed — demo_response is sync; we call infer via a runtime.
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let result = rt.block_on(agent.infer(reading)).unwrap();
+            assert!(!result.cognitive_state.is_empty());
+            assert!(!result.recommendations.is_empty());
+        }
+    }
+
+    #[test]
+    fn default_agent_is_in_demo_mode() {
+        let agent = BioChipAgent::default();
+        assert!(agent.demo, "default agent must be in demo mode (no API key available in tests)");
+    }
+
+    #[test]
+    fn build_prompt_contains_sequence_id() {
+        let mut fusion = SensorFusion::new();
+        let reading = fusion.sample(42);
+        let prompt = build_prompt(&reading);
+        assert!(prompt.contains("#42"), "prompt must embed sequence_id");
+    }
 }
