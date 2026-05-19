@@ -1,30 +1,30 @@
 {
   "inference_result": {
-    "timestamp": "2026-05-19T12:12:34.983862691Z",
+    "timestamp": "2026-05-19T12:40:22.513130500Z",
     "sequence_id": 1,
     "fused_reading": {
-      "timestamp": "2026-05-19T12:12:34.983839312Z",
+      "timestamp": "2026-05-19T12:40:22.513058531Z",
       "sequence_id": 1,
       "bci": {
-        "timestamp": "2026-05-19T12:12:34.983828443Z",
-        "delta_hz": 1.87,
-        "theta_hz": 6.08,
-        "alpha_hz": 10.56,
-        "beta_hz": 18.3,
-        "gamma_hz": 43.74,
-        "attention_index": 0.62,
-        "meditation_index": 0.67
+        "timestamp": "2026-05-19T12:40:22.513042578Z",
+        "delta_hz": 1.97,
+        "theta_hz": 5.76,
+        "alpha_hz": 10.83,
+        "beta_hz": 17.29,
+        "gamma_hz": 44.75,
+        "attention_index": 0.59,
+        "meditation_index": 0.69
       },
       "accelerometer": {
-        "timestamp": "2026-05-19T12:12:34.983839186Z",
-        "x": 0.25,
-        "y": -0.01,
-        "z": 9.82,
-        "magnitude": 9.82,
+        "timestamp": "2026-05-19T12:40:22.513058403Z",
+        "x": 0.23,
+        "y": -0.06,
+        "z": 9.91,
+        "magnitude": 9.91,
         "activity_state": "Stationary"
       },
-      "cognitive_load": 0.52,
-      "emotional_valence": -0.01,
+      "cognitive_load": 0.49,
+      "emotional_valence": 0.01,
       "arousal_level": 0.76
     },
     "cognitive_state": "Balanced beta-alpha profile consistent with focused, productive cognitive engagement",
@@ -36,8 +36,8 @@
     "alert_level": "Normal",
     "raw_llm_response": "{\"cognitive_state\":\"Balanced beta-alpha profile consistent with focused, productive cognitive engagement\",\"alert_level\":\"Normal\",\"recommendations\":[\"All readings within optimal operating range - maintain current activity and environment\",\"Beta dominance confirms active problem-solving mode is fully engaged\",\"Schedule a 5-minute micro-break within 45 minutes to prevent fatigue accumulation\"]}"
   },
-  "payload_hash_hex": "df7efa7a9981d1c07e1ca298d1cda0916c56322d4621a482886529adecbd1bea",
-  "signature_hex": "9687a97ea2de4723d8237a504e9fbae11daf9e79dca0ecf13cb4da324264ad4f0f3fb989eaf491e46e17d480a8374d13efe0adc68d2af0fceeecbd1ee093dee8",
-  "public_key_hex": "046a518cc148cdd34fc3d674d0e07f83b691f940efc7a585086e7c082410fa4c360935f969b5f2010721d57fb72a78494177ad83b70221754f99f3e4aa1ef58217",
-  "signed_at": "2026-05-19T12:12:34.984174203Z"
+  "payload_hash_hex": "e908e30de32d07d7a2588a0a5b7bcdafb00c0ee9f13a0dd74c47890c503c5d29",
+  "signature_hex": "fee4e33c07b57782646da875211c0a19fdefdb20526cdc3a6fe16fc1d8bf1d9220dec8c969a98b13555f236f8d17c7a21a4925139e3734eb6933ba26361d2059",
+  "public_key_hex": "04e1ae65ae175de968ba0115c5d8c5aa226ee5b03fe835c94630c78bc0b73e7071c8c04a97510365f16c12374162e41661b03fedac60996798f0dc72e0d296f893",
+  "signed_at": "2026-05-19T12:40:22.513777582Z"
 }

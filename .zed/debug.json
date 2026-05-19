@@ -35,24 +35,145 @@
     "request": "launch",
     "adapter": "CodeLLDB",
   },
-  // {
-  //   "label": "Debug polar-bear-biochip (demo mode)",
-  //   "adapter": "CodeLLDB",
-  //   "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
-  //   "args": ["run", "--demo", "--cycles", "3"],
-  //   "cwd": "${workspaceRoot}",
-  //   "env": {
-  //     "RUST_LOG": "polar_bear_biochip=debug",
-  //   },
-  // },
-  // {
-  //   "label": "Debug verify command",
-  //   "adapter": "CodeLLDB",
-  //   "program": "${workspaceRoot}/target/debug/polar-bear-biochip",
-  //   "args": ["verify", "signed_outputs/cycle_001.json"],
-  //   "cwd": "${workspaceRoot}",
-  //   "env": {
-  //     "RUST_LOG": "polar_bear_biochip=debug",
-  //   },
-  // },
+  {
+    "label": "Test all deterministic tests - polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["test"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "Test sensor layer only - polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["test", "sensors"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "Test provenance layer only - polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["test", "provenan"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "Run Demo mode, no API required - polar-bear-biochip",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--", "run", "--demo", "--cycles", "5"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/debug/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "Live inference",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--release", "--", "run", "--cycles", "10"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "With rig-core backend",
+    "build": {
+      "command": "cargo",
+      "args": [
+        "run",
+        "--release",
+        "--features",
+        "ai-agent",
+        "--",
+        "run",
+        "--cycles",
+        "10",
+      ],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "Verify the signed output offline",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--", "verify", "signed_outputs/cycle_001.json"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "sensor funsion table (no key)",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--example", "sensors_demo"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "ECDSA sign/verify/tamper (no key)",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--example", "provenance_demo"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "agent demo (demo fallback)",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--example", "agent_demo"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
+  {
+    "label": "live rig-core inferenc",
+    "build": {
+      "command": "cargo",
+      "args": ["run", "--example", "agent_demo", "--features", "ai-agent"],
+    },
+    "program": "$ZED_WORKTREE_ROOT/target/release/polar-bear-biochip",
+    // sourceLanguages is required for CodeLLDB (not GDB) when using Rust
+    "sourceLanguages": ["rust"],
+    "request": "launch",
+    "adapter": "CodeLLDB",
+  },
 ]

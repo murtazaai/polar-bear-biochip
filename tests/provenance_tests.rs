@@ -5,20 +5,21 @@ use polar_bear_biochip::{
     sensors::fusion::SensorFusion,
     types::{AlertLevel, InferenceResult},
 };
+use sha2::Digest;
 
 // ── Test helper ───────────────────────────────────────────────────────────────
 
 fn make_result(seq: u64) -> InferenceResult {
     let mut fusion = SensorFusion::new();
     InferenceResult {
-        timestamp:        chrono::Utc::now(),
-        sequence_id:      seq,
-        fused_reading:    fusion.sample(seq),
-        cognitive_state:  format!("test state {seq}"),
-        recommendations:  vec!["rec a".to_string(), "rec b".to_string()],
-        alert_level:      AlertLevel::Normal,
-        raw_llm_response: r#"{"cognitive_state":"test","alert_level":"Normal","recommendations":[]}"#
-            .to_string(),
+        timestamp: chrono::Utc::now(),
+        sequence_id: seq,
+        fused_reading: fusion.sample(seq),
+        cognitive_state: format!("test state {seq}"),
+        recommendations: vec!["rec a".to_string(), "rec b".to_string()],
+        alert_level: AlertLevel::Normal,
+        raw_llm_response:
+            r#"{"cognitive_state":"test","alert_level":"Normal","recommendations":[]}"#.to_string(),
     }
 }
 
@@ -133,10 +134,10 @@ fn standalone_verifier_accepts_valid_signed_output() {
 fn standalone_verifier_rejects_wrong_key() {
     let signer_a = EcdsaSigner::generate();
     let signer_b = EcdsaSigner::generate();
-    let signed   = signer_a.sign_result(&make_result(8)).unwrap();
+    let signed = signer_a.sign_result(&make_result(8)).unwrap();
 
     let verifier_b = EcdsaVerifier::from_hex(&signer_b.public_key_hex()).unwrap();
-    let hash       = sha2::Digest::finalize(sha2::Sha256::new_with_prefix(
+    let hash = sha2::Digest::finalize(sha2::Sha256::new_with_prefix(
         serde_json::to_string(&signed.inference_result)
             .unwrap()
             .as_bytes(),
@@ -154,8 +155,11 @@ fn verifier_from_hex_invalid_returns_error() {
 #[test]
 fn distinct_results_produce_distinct_signatures() {
     let signer = EcdsaSigner::generate();
-    let sig1   = signer.sign_result(&make_result(9)).unwrap().signature_hex;
-    let sig2   = signer.sign_result(&make_result(10)).unwrap().signature_hex;
+    let sig1 = signer.sign_result(&make_result(9)).unwrap().signature_hex;
+    let sig2 = signer.sign_result(&make_result(10)).unwrap().signature_hex;
     // Different payloads (different sequence_id + timestamps) must produce different sigs.
-    assert_ne!(sig1, sig2, "distinct payloads must produce distinct signatures");
+    assert_ne!(
+        sig1, sig2,
+        "distinct payloads must produce distinct signatures"
+    );
 }
