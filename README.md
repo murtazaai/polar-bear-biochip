@@ -1,6 +1,6 @@
 # polar-bear-biochip
 
-**Bio-chip intelligence framework for Polar Bear Systems**  
+**Bio-chip intelligence framework for Polar Bear Systems**
 Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-signed provenance
 
 [![Rust](https://img.shields.io/badge/rust-1.85.0+-orange)](https://www.rust-lang.org/)
@@ -22,7 +22,7 @@ higher-order cognitive features, then routes them through a **rig-core (ARC)** L
 classification. Every inference result is **ECDSA-signed** on secp256k1 for blockchain-grade,
 tamper-evident data provenance.
 
-> **Demo mode**: all operations run without an API key by default.  
+> **Demo mode**: all operations run without an API key by default.
 > Set `ANTHROPIC_API_KEY` (and optionally `--features ai-agent`) for live inference.
 
 ---
@@ -34,21 +34,21 @@ tamper-evident data provenance.
 │                      polar-bear-biochip                             │
 ├──────────────────────────────────┬──────────────────────────────────┤
 │         sensors layer            │        provenance layer          │
-│                                  │                                   │
+│                                  │                                  │
 │  bci.rs       δ θ α β γ bands   │  ecdsa_signer.rs  secp256k1     │
-│               attention + med    │  EcdsaSigner      sign_result()  │
-│  accelerometer.rs  3-axis MEMS  │  EcdsaVerifier    from_hex()     │
+│               attention + med    │  EcdsaSigner      sign_result() │
+│  accelerometer.rs  3-axis MEMS  │  EcdsaVerifier    from_hex()    │
 │               activity state     │  SHA-256 payload hashing        │
 │  fusion.rs    SensorFusion       │  64-byte r‖s compact signature  │
-│               cognitive_load     │  → SignedOutput JSON on disk     │
-│               emotional_valence  │                                   │
-│               arousal_level      │                                   │
+│               cognitive_load     │  → SignedOutput JSON on disk    │
+│               emotional_valence  │                                  │
+│               arousal_level      │                                  │
 ├──────────────────────────────────┴──────────────────────────────────┤
 │         agent layer  (feature = ai-agent)                           │
-│                                                                      │
-│  biochip_agent.rs   BioChipAgent                                    │
-│  ├── ai-agent feature ──► rig-core 0.37 · claude-sonnet-4-6        │
-│  └── fallback        ──► curl subprocess · same JSON payload        │
+│                                                                     │
+│  biochip_agent.rs   BioChipAgent                                   │
+│  ├── ai-agent feature ──► rig-core 0.37 · claude-sonnet-4-6       │
+│  └── fallback        ──► curl subprocess · same JSON payload       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -96,7 +96,7 @@ See [`docs/bci_math.md`](docs/bci_math.md) for full derivations and ICA pipeline
 ### Offline verification
 
 ```rust
-// No private key required - public key embedded in SignedOutput.
+// No private key required - public key is embedded in SignedOutput.
 let valid = EcdsaSigner::verify_signed(&signed_output)?;
 
 // Or use the standalone verifier:
@@ -113,7 +113,7 @@ verifier.verify(&sha256_hash, &signed_output.signature_hex)?;
 | Tool | Version | Notes |
 |---|---|---|
 | Rust stable | ≥ 1.85.0 (MSRV) | `rustup update stable` |
-| `curl` | any | for non-ai-agent live inference |
+| `curl` | any | for non-`ai-agent` live inference |
 | `ANTHROPIC_API_KEY` | - | optional; demo mode if absent |
 
 ### Quick start
@@ -126,11 +126,11 @@ cp .env.example .env          # fill in ANTHROPIC_API_KEY for live inference
 # Demo mode - no API key required
 cargo run -- run --demo --cycles 5
 
-# Live inference
+# Live inference (curl backend)
 cargo run --release -- run --cycles 10
 
-# With rig-core backend
-cargo run --release --features ai-agent -- run --cycles 5
+# Live inference with rig-core backend
+cargo run --release --features ai-agent -- run --cycles 10
 
 # Verify a signed output file offline
 cargo run -- verify signed_outputs/cycle_001.json
@@ -153,10 +153,10 @@ run options:
 ### Examples
 
 ```bash
-cargo run --example sensors_demo           # sensor fusion table (no key)
-cargo run --example provenance_demo        # ECDSA sign/verify/tamper (no key)
-cargo run --example agent_demo             # agent demo (demo fallback)
-cargo run --example agent_demo --features ai-agent   # live rig-core inference
+cargo run --example sensors_demo                           # sensor fusion table (no key)
+cargo run --example provenance_demo                        # ECDSA sign/verify/tamper (no key)
+cargo run --example agent_demo                             # agent demo (demo fallback)
+cargo run --example agent_demo --features ai-agent         # live rig-core inference
 ```
 
 ---
@@ -215,9 +215,10 @@ INFO  Public Key : 04d23257ac0b...261c583a6ad7
 **Total: 46 tests**
 
 ```bash
-cargo test          # run all 46 tests
-cargo test sensors  # sensor layer only
-cargo test provenan # provenance layer only
+cargo test                  # run all 46 tests
+cargo test sensors          # sensor layer only
+cargo test provenance       # provenance layer only
+cargo test -- --nocapture   # verbose output
 ```
 
 ---
@@ -230,8 +231,8 @@ cargo test provenan # provenance layer only
     "timestamp": "2026-05-19T10:30:00.117Z",
     "sequence_id": 1,
     "fused_reading": {
-      "bci": { "alpha_hz": 11.5, "beta_hz": 19.2, "attention_index": 0.62, ... },
-      "accelerometer": { "x": -0.05, "z": 9.69, "activity_state": "Stationary", ... },
+      "bci": { "alpha_hz": 11.5, "beta_hz": 19.2, "attention_index": 0.62, "..." : "..." },
+      "accelerometer": { "x": -0.05, "z": 9.69, "activity_state": "Stationary", "...": "..." },
       "cognitive_load": 0.51,
       "emotional_valence": -0.0,
       "arousal_level": 0.75
@@ -269,9 +270,55 @@ Both paths produce identical `InferenceResult` structures.
 
 ---
 
+## Zed editor configuration (`.zed/`)
+
+The `.zed/` directory contains a complete, pre-tuned workspace configuration
+for the [Zed editor](https://zed.dev). No manual setup required - open the
+project root in Zed and everything is ready.
+
+| File | Purpose |
+|---|---|
+| `settings.json` | Workspace settings: rust-analyzer LSP, format-on-save, inlay hints, clippy diagnostics, semantic highlighting, file exclusions |
+| `tasks.json` | Task runner: check, build, run, test, clippy, fmt, doc - all variants including `ai-agent` feature |
+| `debug.json` | CodeLLDB launch configurations: debug/release builds, demo and live run modes, verify subcommand, all three example binaries |
+
+### Quick reference - tasks (`Cmd+Shift+R` / `Ctrl+Shift+R`)
+
+| Category | Key tasks |
+|---|---|
+| Build | `check`, `build (debug)`, `build (release)`, `build (ai-agent feature, *)` |
+| Run | `run: demo (5/10 cycles)`, `run: live (* cycles, curl/rig-core backend)` |
+| Verify | `verify: signed_outputs/cycle_001.json` |
+| Test | `test (all, 46 tests)`, `test: sensor layer only`, `test: provenance layer only`, `test (all, verbose output)` |
+| Examples | `example: sensors_demo`, `example: provenance_demo`, `example: agent_demo (*)` |
+| Lint | `clippy (all targets)`, `clippy (ai-agent feature, all targets)` |
+| Format | `fmt: check` (CI-safe), `fmt: apply` |
+| Docs | `doc (open, no-deps)`, `doc (all features, open)` |
+| Misc | `clean` |
+
+### Quick reference - debug launches (`Cmd+Shift+D` / `Ctrl+Shift+D`)
+
+| Configuration | Description |
+|---|---|
+| `Build & Debug (debug)` | Standard debug build, full breakpoint support |
+| `Build & Debug (release)` | Optimised build - mirrors production performance |
+| `Build & Debug (ai-agent feature)` | Debug build with rig-core backend compiled in |
+| `Debug: run --demo --cycles 5/10` | Demo mode, no API key needed |
+| `Debug: run live --cycles 10 (*)` | Live inference via curl or rig-core backend |
+| `Debug: verify signed_outputs/cycle_001.json` | Offline ECDSA verification |
+| `Debug: example sensors_demo` | Sensor fusion walkthrough |
+| `Debug: example provenance_demo` | ECDSA sign/verify/tamper walkthrough |
+| `Debug: example agent_demo (*)` | Agent demo in demo or live mode |
+
+> **Debugging tests**: Rust test binaries are written to `target/debug/deps/<crate>-<hash>`,
+> where the hash is non-deterministic per build. Run `cargo test --no-run` to build and
+> discover the binary path, then use Zed's **Attach to process** debug action.
+
+---
+
 ## License
 
-Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear Systems  
+Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear Systems
 See [LICENSE-PBS](LICENSE-PBS) for permitted use.
 
 ---
@@ -280,6 +327,6 @@ See [LICENSE-PBS](LICENSE-PBS) for permitted use.
 
 **Murtaza Ali Imtiaz**
 
-- LinkedIn: [LinkedIn](https://linkedin.com/in/murtazai)
+- LinkedIn: [linkedin.com/in/murtazai](https://linkedin.com/in/murtazai)
 - GitHub: [@murtazaai](https://github.com/murtazaai)
 - Portfolio: [murtazai.com](https://murtazai.com)

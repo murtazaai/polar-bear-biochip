@@ -1,72 +1,175 @@
+// Zed task runner for polar-bear-biochip
+// Run via: Cmd+Shift+R (macOS) / Ctrl+Shift+R (Linux/Win) → select task
+// All tasks run from the workspace root ($ZED_WORKTREE_ROOT).
 [
-  {
-    "label": "build",
-    "command": "cargo build",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "build --release",
-    "command": "cargo build --release",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "build --features ai-agent",
-    "command": "cargo build --features ai-agent",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "run demo (5 cycles)",
-    "command": "cargo run -- run --demo --cycles 5",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "run live (5 cycles)",
-    "command": "cargo run --release -- run --cycles 5",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "verify sample output",
-    "command": "cargo run -- verify signed_outputs/cycle_001.json",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "test",
-    "command": "cargo test",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "test --features ai-agent",
-    "command": "cargo test --features ai-agent",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "clippy",
-    "command": "cargo clippy --all-targets -- -D warnings",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "fmt",
-    "command": "cargo fmt",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "doc",
-    "command": "cargo doc --open --no-deps",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "example: sensors_demo",
-    "command": "cargo run --example sensors_demo",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "example: provenance_demo",
-    "command": "cargo run --example provenance_demo",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  },
-  {
-    "label": "example: agent_demo (ai-agent)",
-    "command": "cargo run --example agent_demo --features ai-agent",
-    "cwd": "$ZED_WORKTREE_ROOT"
-  }
+    // ── Check & build ──────────────────────────────────────────────────────────
+
+    {
+        "label": "check",
+        "command": "cargo check --all-targets",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "check (ai-agent feature)",
+        "command": "cargo check --all-targets --features ai-agent",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "build (debug)",
+        "command": "cargo build",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "build (release)",
+        "command": "cargo build --release",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "build (ai-agent feature, debug)",
+        "command": "cargo build --features ai-agent",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "build (ai-agent feature, release)",
+        "command": "cargo build --release --features ai-agent",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "clean",
+        "command": "cargo clean",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Run - demo mode (no ANTHROPIC_API_KEY required) ───────────────────────
+
+    {
+        "label": "run: demo (5 cycles)",
+        "command": "cargo run -- run --demo --cycles 5",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "run: demo (10 cycles)",
+        "command": "cargo run -- run --demo --cycles 10",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Run - live inference (ANTHROPIC_API_KEY required) ────────────────────
+
+    {
+        "label": "run: live (5 cycles, curl backend)",
+        "command": "cargo run --release -- run --cycles 5",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "run: live (10 cycles, curl backend)",
+        "command": "cargo run --release -- run --cycles 10",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "run: live (10 cycles, rig-core backend)",
+        "command": "cargo run --release --features ai-agent -- run --cycles 10",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Verify ────────────────────────────────────────────────────────────────
+
+    {
+        "label": "verify: signed_outputs/cycle_001.json",
+        "command": "cargo run -- verify signed_outputs/cycle_001.json",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Tests ─────────────────────────────────────────────────────────────────
+
+    {
+        "label": "test (all, 46 tests)",
+        "command": "cargo test",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "test (all, verbose output)",
+        "command": "cargo test -- --nocapture",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "test (ai-agent feature)",
+        "command": "cargo test --features ai-agent",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "test: sensor layer only",
+        "command": "cargo test sensors",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "test: provenance layer only",
+        "command": "cargo test provenance",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Examples ──────────────────────────────────────────────────────────────
+
+    {
+        // Sensor fusion feature table - no API key needed.
+        "label": "example: sensors_demo",
+        "command": "cargo run --example sensors_demo",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // ECDSA sign / verify / tamper walkthrough - no API key needed.
+        "label": "example: provenance_demo",
+        "command": "cargo run --example provenance_demo",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // Agent demo with deterministic fallback - no API key needed.
+        "label": "example: agent_demo (demo fallback)",
+        "command": "cargo run --example agent_demo",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // Agent demo with live rig-core backend - requires ANTHROPIC_API_KEY.
+        "label": "example: agent_demo (ai-agent feature, live)",
+        "command": "cargo run --example agent_demo --features ai-agent",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Lint & format ─────────────────────────────────────────────────────────
+
+    {
+        "label": "clippy (all targets)",
+        "command": "cargo clippy --all-targets -- -D warnings",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        "label": "clippy (ai-agent feature, all targets)",
+        "command": "cargo clippy --all-targets --features ai-agent -- -D warnings",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // Check formatting without modifying files (CI-safe).
+        "label": "fmt: check",
+        "command": "cargo fmt --check",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // Apply rustfmt in-place.
+        "label": "fmt: apply",
+        "command": "cargo fmt",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+
+    // ── Documentation ─────────────────────────────────────────────────────────
+
+    {
+        "label": "doc (open, no-deps)",
+        "command": "cargo doc --open --no-deps",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    {
+        // Builds docs with all features visible - mirrors docs.rs output.
+        "label": "doc (all features, open)",
+        "command": "cargo doc --open --no-deps --all-features",
+        "cwd": "$ZED_WORKTREE_ROOT",
+    },
 ]
