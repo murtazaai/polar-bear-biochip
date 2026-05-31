@@ -38,6 +38,7 @@
 /// The main biochip agent that handles sensor fusion and inference.
 use anyhow::{Context, Result};
 use chrono::Utc;
+use rand::Rng;
 #[cfg(feature = "ai-agent")]
 use rig_core::{
     client::{CompletionClient, ProviderClient},
@@ -185,9 +186,16 @@ impl BioChipAgent {
         let raw = if self.demo {
             OtherBioChipAgent::demo_response(&reading)
         } else {
-            self.live_inference(&reading).await?
+            #[cfg(feature = "ai-agent")]
+            {
+                self.rig_inference(&reading).await
+            }
+            #[cfg(not(feature = "ai-agent"))]
+            {
+                Ok(InferenceResult::new(reading))
+            }
         };
-        OtherBioChipAgent::parse_response(reading, raw)
+        Ok(InferenceResult::parse_response(raw))
     }
 
     /// Runs live inference using the configured backend (Rig or curl).
@@ -198,15 +206,13 @@ impl BioChipAgent {
     /// # Returns
     ///
     /// The raw LLM response as a string.
-    async fn live_inference(&self, reading: &FusedReading) -> Result<String> {
+    async fn live_inference(&self, reading: &FusedReading) -> impl Future<Output = Result<String>> {
         #[cfg(feature = "ai-agent")]
         {
             return self.rig_inference(reading).await;
         }
         #[cfg(not(feature = "ai-agent"))]
-        {
-            self.curl_inference(reading)
-        }
+        std::future::ready({ self.curl_inference(reading) })
     }
 
     /// Runs inference using the Rig (ARC) Bio-Chip LLM backend.
