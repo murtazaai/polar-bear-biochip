@@ -180,15 +180,15 @@ impl BioChipAgent {
     /// The parsed inference result.
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
         let raw: String = if self.demo {
-            Self::demo_response(&reading)
+            Self::demo_response(&reading).await
         } else {
             #[cfg(feature = "ai-agent")]
             {
-                self.rig_inference(&reading).await?
+                self.rig_inference(&reading).await
             }
             #[cfg(not(feature = "ai-agent"))]
             {
-                self.curl_inference(&reading)?
+                self.curl_inference(&reading).await
             }
         };
         Self::parse_response(reading, raw)
