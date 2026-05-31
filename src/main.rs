@@ -19,7 +19,8 @@ use polar_bear_biochip::{
     agent::BioChipAgent,
     provenance::{EcdsaSigner, EcdsaVerifier},
     sensors::SensorFusion,
-    types::{AlertLevel, SignedOutput},
+    types::SignedOutput,
+    // types::AlertLevel,
 };
 use sha2::Digest;
 use tracing::{info, warn};
@@ -190,6 +191,7 @@ async fn cmd_run(cycles: u32, demo: bool, output_dir: &Path, model: &str) -> Res
 /// # Returns
 ///
 /// Returns `Ok(())` on success, or an error if something went wrong.
+#[allow(clippy::similar_names)]
 async fn run_cycle(
     cycle: u32,
     total: u32,

@@ -160,10 +160,10 @@ impl EcdsaSigner {
             serde_json::to_string(result).map_err(|e| anyhow!("JSON serialise: {e}"))?;
 
         let hash_bytes = Sha256::digest(payload_json.as_bytes());
-        let payload_hash_hex = hex::encode(&hash_bytes);
-
         let signature: Signature = self.signing_key.sign(&hash_bytes);
         let signature_hex = hex::encode(signature.to_bytes());
+        let payload_hash_hex = hex::encode(hash_bytes);
+
 
         Ok(SignedOutput {
             inference_result: result.clone(),
@@ -284,6 +284,7 @@ mod tests {
     /// # Assertions
     /// - The signature should be verified successfully.
     #[test]
+    #[allow(clippy::similar_names)] // `signer` / `signed` are the canonical names here
     fn sign_verify_roundtrip() {
         let signer = EcdsaSigner::generate();
         let result = dummy_result(1);
@@ -297,6 +298,7 @@ mod tests {
     /// # Assertions
     /// - The signature should not be verified successfully.
     #[test]
+    #[allow(clippy::similar_names)]
     fn tampered_cognitive_state_fails_verification() {
         let signer = EcdsaSigner::generate();
         let mut signed = signer.sign_result(&dummy_result(2)).unwrap();
@@ -310,6 +312,7 @@ mod tests {
     /// # Assertions
     /// - The signature should not be verified successfully.
     #[test]
+    #[allow(clippy::similar_names)]
     fn tampered_signature_fails_verification() {
         let signer = EcdsaSigner::generate();
         let mut signed = signer.sign_result(&dummy_result(3)).unwrap();
@@ -343,6 +346,7 @@ mod tests {
     /// # Assertions
     /// - The signature should be verified successfully.
     #[test]
+    #[allow(clippy::similar_names)]
     fn standalone_verifier_accepts_valid_signature() {
         let signer = EcdsaSigner::generate();
         let result = dummy_result(4);
@@ -392,6 +396,7 @@ mod tests {
     /// # Assertions
     /// - The signature hex string should be 128 characters long.
     #[test]
+    #[allow(clippy::similar_names)]
     fn signature_hex_is_128_chars() {
         let signer = EcdsaSigner::generate();
         let result = dummy_result(6);

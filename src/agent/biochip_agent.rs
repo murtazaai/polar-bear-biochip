@@ -46,7 +46,10 @@ use rig_core::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::types::{AlertLevel, FusedReading, InferenceResult};
+use crate::{
+    agent::BioChipAgent as OtherBioChipAgent,
+    types::{AlertLevel, FusedReading, InferenceResult},
+};
 
 /// The preamble for the biochip agent's system prompt.
 ///
@@ -79,6 +82,7 @@ Interpretation guide:\n\
 /// - `max_tokens`: The maximum number of tokens to generate.
 /// - `system`: The system prompt to use for the API call.
 /// - `messages`: The messages to send to the API call.
+#[allow(dead_code)]
 #[derive(Serialize)]
 struct ApiRequest<'a> {
     model: &'a str,
@@ -93,6 +97,7 @@ struct ApiRequest<'a> {
 ///
 /// - `role`: The role of the message sender.
 /// - `content`: The content of the message.
+#[allow(dead_code)]
 #[derive(Serialize)]
 struct ApiMessage<'a> {
     role: &'a str,
@@ -105,6 +110,7 @@ struct ApiMessage<'a> {
 ///
 /// - `content`: The content of the response.
 /// - `api_usage`: The API usage information.
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct ApiResponse {
     content: Vec<ApiContent>,
@@ -116,6 +122,7 @@ struct ApiResponse {
 ///
 /// - `text`: The text content of the response.
 /// - `api_usage`: The API usage information.
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct ApiContent {
     text: Option<String>,
@@ -176,11 +183,11 @@ impl BioChipAgent {
     /// The parsed inference result.
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
         let raw = if self.demo {
-            self.demo_response(&reading)
+            OtherBioChipAgent::demo_response(&reading)
         } else {
             self.live_inference(&reading).await?
         };
-        self.parse_response(reading, raw)
+        OtherBioChipAgent::parse_response(reading, raw)
     }
 
     /// Runs live inference using the configured backend (Rig or curl).
@@ -292,7 +299,7 @@ impl BioChipAgent {
     /// # Returns
     ///
     /// The raw LLM response as a string.
-    fn demo_response(&self, r: &FusedReading) -> String {
+    fn demo_response(r: &FusedReading) -> String {
         if r.bci.delta_hz > 3.2 || r.bci.theta_hz > 7.0 {
             r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue - microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity","Initiate a 20-minute NREM power-nap protocol to restore prefrontal cortex function","Re-schedule all cognitively demanding tasks to the post-recovery window"]}"#
         } else if r.cognitive_load > 0.72 || r.emotional_valence < -0.30 {
@@ -313,7 +320,7 @@ impl BioChipAgent {
     /// # Returns
     ///
     /// The parsed inference result.
-    fn parse_response(&self, reading: FusedReading, raw: String) -> Result<InferenceResult> {
+    fn parse_response(reading: FusedReading, raw: String) -> Result<InferenceResult> {
         let clean = raw
             .trim()
             .trim_start_matches("```json")

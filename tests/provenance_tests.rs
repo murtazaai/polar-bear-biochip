@@ -75,6 +75,7 @@ fn verifying_key_is_66_hex_chars_compressed() {
 /// This test ensures that the signature and payload hash are correctly formatted and can be used
 /// for ECDSA operations.
 #[test]
+#[allow(clippy::similar_names)]
 fn sign_verify_roundtrip_is_valid() {
     let signer = EcdsaSigner::generate();
     let signed = signer.sign_result(&make_result(1)).unwrap();
@@ -89,6 +90,7 @@ fn sign_verify_roundtrip_is_valid() {
 /// This test ensures that the signature and payload hash are correctly formatted and can be used
 /// for ECDSA operations.
 #[test]
+#[allow(clippy::similar_names)]
 fn signature_hex_is_128_chars() {
     let signer = EcdsaSigner::generate();
     let signed = signer.sign_result(&make_result(2)).unwrap();
@@ -103,6 +105,7 @@ fn signature_hex_is_128_chars() {
 /// This test ensures that the payload hash is correctly formatted and can be used for ECDSA
 /// operations.
 #[test]
+#[allow(clippy::similar_names)]
 fn payload_hash_hex_is_64_chars() {
     let signer = EcdsaSigner::generate();
     let signed = signer.sign_result(&make_result(3)).unwrap();
@@ -116,6 +119,7 @@ fn payload_hash_hex_is_64_chars() {
 ///
 /// This test ensures that tampering with the cognitive state or alert level fails verification.
 #[test]
+#[allow(clippy::similar_names)]
 fn modified_cognitive_state_fails_verification() {
     let signer = EcdsaSigner::generate();
     let mut signed = signer.sign_result(&make_result(4)).unwrap();
@@ -129,6 +133,7 @@ fn modified_cognitive_state_fails_verification() {
 ///
 /// This test ensures that tampering with the alert level fails verification.
 #[test]
+#[allow(clippy::similar_names)]
 fn modified_alert_level_fails_verification() {
     let signer = EcdsaSigner::generate();
     let mut signed = signer.sign_result(&make_result(5)).unwrap();
@@ -142,6 +147,7 @@ fn modified_alert_level_fails_verification() {
 ///
 /// This test ensures that tampering with the sequence ID fails verification.
 #[test]
+#[allow(clippy::similar_names)]
 fn modified_sequence_id_fails_verification() {
     let signer = EcdsaSigner::generate();
     let mut signed = signer.sign_result(&make_result(6)).unwrap();
@@ -180,6 +186,7 @@ fn from_hex_invalid_input_returns_error() {
 ///
 /// This test ensures that the standalone [`EcdsaVerifier`] accepts a valid signed output.
 #[test]
+#[allow(clippy::similar_names)]
 fn standalone_verifier_accepts_valid_signed_output() {
     let signer = EcdsaSigner::generate();
     let signed = signer.sign_result(&make_result(7)).unwrap();
@@ -200,6 +207,7 @@ fn standalone_verifier_accepts_valid_signed_output() {
 /// This test ensures that the standalone [`EcdsaVerifier`] rejects a signed output with the wrong
 /// key.
 #[test]
+#[allow(clippy::similar_names)]
 fn standalone_verifier_rejects_wrong_key() {
     let signer_a = EcdsaSigner::generate();
     let signer_b = EcdsaSigner::generate();

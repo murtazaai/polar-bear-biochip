@@ -22,6 +22,7 @@ use sha2::Digest;
 ///
 /// This demo simulates an ARC sensor fusion, generates an inference result, and demonstrates
 /// the use of ECDSA secp256k1 for provenance verification.
+#[allow(clippy::similar_names)]
 fn main() -> anyhow::Result<()> {
     println!("╔══════════════════════════════════════════════════════════════════╗");
     println!("║          ECDSA secp256k1 PROVENANCE - DEMO                      ║");
