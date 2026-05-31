@@ -3,6 +3,9 @@
 **Bio-chip intelligence framework for Polar Bear Systems**
 Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-signed provenance
 
+[![Crates.io](https://img.shields.io/crates/v/polar-bear-biochip.svg)](https://crates.io/crates/polar-bear-biochip)
+[![Docs.rs](https://docs.rs/polar-bear-biochip/badge.svg)](https://docs.rs/polar-bear-biochip)
+[![CI](https://github.com/murtazaai/polar-bear-biochip/actions/workflows/ci.yml/badge.svg)](https://github.com/murtazaai/polar-bear-biochip/actions/workflows/ci.yml)
 [![Rust](https://img.shields.io/badge/rust-1.85.0+-orange)](https://www.rust-lang.org/)
 [![Edition](https://img.shields.io/badge/Edition-2024-blue)](https://doc.rust-lang.org/edition-guide/)
 [![rig-core](https://img.shields.io/badge/rig--core-0.37-purple)](https://rig.rs)
