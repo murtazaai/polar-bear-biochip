@@ -1,15 +1,20 @@
 [package]
 name        = "polar-bear-biochip"
-version     = "0.2.0"
+version     = "0.2.1"
 edition     = "2024"
 rust-version = "1.85.0"
 authors     = ["Murtaza Ali Imtiaz <very.kool.king@gmail.com>"]
 description = "Bio-chip intelligence framework: multi-sensor EEG+motion fusion + rig-core LLM orchestration + ECDSA-signed data provenance"
-license     = "LicensePBS"
+license     = "MIT OR Apache-2.0"
 repository  = "https://github.com/murtazaai/polar-bear-biochip"
 keywords    = ["biochip", "bci", "rig", "ecdsa", "sensor-fusion"]
 categories  = ["science", "cryptography"]
 readme      = "README.md"
+
+
+[lib]
+name = "polar_bear_biochip"
+path = "src/lib.rs"
 
 [[bin]]
 name = "polar-bear-biochip"

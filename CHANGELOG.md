@@ -80,3 +80,10 @@ Initial release:
 - ECDSA secp256k1 signing of every `InferenceResult` → tamper-evident `SignedOutput` JSON
 - `--verify` CLI flag for offline signature verification
 - GitHub Actions CI: build + smoke test
+
+## [0.2.1] — 2026-05-31
+
+### Fixed
+- **LICENSE**: Replaced proprietary `LicensePBS` with `MIT OR Apache-2.0` dual licence; added `LICENSE-MIT` and `LICENSE-APACHE` files. `cargo publish` now passes SPDX validation.
+- **Cargo.toml**: Added explicit `[lib]` target so `polar-bear-biochip` is usable as a library dependency as well as a binary.
+- **Security**: Removed `.env` (API key file) from repository; `.gitignore` already excluded it but the file was present in the archive.

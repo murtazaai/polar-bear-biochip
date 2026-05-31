@@ -108,3 +108,30 @@ impl EcdsaVerifier {
 ```
 `main.rs` inline verification now uses `EcdsaVerifier::from_hex(&signed.public_key_hex)?`
 after signing, demonstrating that verification never touches private material.
+
+---
+
+## Fix #19 — LICENSE not SPDX-compliant (`cargo publish` blocker)
+
+**Stage:** 08 — Publication  
+**Error:** `error: the `license` field in `Cargo.toml` is not a valid SPDX expression`  
+**Root cause:** `license = "LicensePBS"` is a custom proprietary identifier. crates.io requires a valid SPDX expression (e.g. `MIT OR Apache-2.0`). Additionally, the `LICENSE-PBS` proprietary all-rights-reserved file prohibits redistribution, which is incompatible with crates.io's requirement for an open-source license.  
+**Fix:**  
+- Changed `license = "LicensePBS"` → `license = "MIT OR Apache-2.0"` in `Cargo.toml`  
+- Added `LICENSE-MIT` (MIT License, Copyright 2025 Murtaza Ali Imtiaz)  
+- Added `LICENSE-APACHE` (Apache License 2.0, Copyright 2025 Murtaza Ali Imtiaz)  
+- Removed `LICENSE-PBS`  
+
+---
+
+## Fix #20 — Missing `[lib]` target (crate not usable as library dependency)
+
+**Stage:** 08 — Publication  
+**Error:** No error at compile time, but the crate publishes as binary-only. Downstream callers doing `polar-bear-biochip = "0.2"` cannot `use polar_bear_biochip::...`.  
+**Root cause:** `src/lib.rs` exists and exports the full public API, but `Cargo.toml` only declared `[[bin]]`. Without an explicit `[lib]` section, Cargo infers a lib target from `src/lib.rs` in a mixed crate — however, declaring it explicitly is required for docs.rs feature-gating and for clean crates.io publication metadata.  
+**Fix:**  
+```toml
+[lib]
+name = "polar_bear_biochip"
+path = "src/lib.rs"
+```
