@@ -178,6 +178,7 @@ impl BioChipAgent {
     /// # Returns
     ///
     /// The parsed inference result.
+    #[cfg_attr(not(feature = "ai-agent"), allow(clippy::unused_async))]
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
         let raw: String = if self.demo {
             Self::demo_response(&reading)
