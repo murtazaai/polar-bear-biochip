@@ -38,7 +38,6 @@
 /// The main biochip agent that handles sensor fusion and inference.
 use anyhow::{Context, Result};
 use chrono::Utc;
-use rand::Rng;
 #[cfg(feature = "ai-agent")]
 use rig_core::{
     client::{CompletionClient, ProviderClient},
@@ -47,10 +46,7 @@ use rig_core::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    agent::BioChipAgent as OtherBioChipAgent,
-    types::{AlertLevel, FusedReading, InferenceResult},
-};
+use crate::types::{AlertLevel, FusedReading, InferenceResult};
 
 /// The preamble for the biochip agent's system prompt.
 ///
@@ -183,36 +179,19 @@ impl BioChipAgent {
     ///
     /// The parsed inference result.
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
-        let raw = if self.demo {
-            OtherBioChipAgent::demo_response(&reading)
+        let raw: String = if self.demo {
+            Self::demo_response(&reading)
         } else {
             #[cfg(feature = "ai-agent")]
             {
-                self.rig_inference(&reading).await
+                self.rig_inference(&reading).await?
             }
             #[cfg(not(feature = "ai-agent"))]
             {
-                Ok(InferenceResult::new(reading))
+                self.curl_inference(&reading)?
             }
         };
-        Ok(InferenceResult::parse_response(raw))
-    }
-
-    /// Runs live inference using the configured backend (Rig or curl).
-    ///
-    /// # Errors
-    /// Returns an error if the API call fails or the response cannot be parsed.
-    ///
-    /// # Returns
-    ///
-    /// The raw LLM response as a string.
-    async fn live_inference(&self, reading: &FusedReading) -> impl Future<Output = Result<String>> {
-        #[cfg(feature = "ai-agent")]
-        {
-            return self.rig_inference(reading).await;
-        }
-        #[cfg(not(feature = "ai-agent"))]
-        std::future::ready({ self.curl_inference(reading) })
+        Self::parse_response(reading, raw)
     }
 
     /// Runs inference using the Rig (ARC) Bio-Chip LLM backend.
