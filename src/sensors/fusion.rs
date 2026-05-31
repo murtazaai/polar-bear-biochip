@@ -1,7 +1,7 @@
 //! # Sensor Fusion
 //!
 //! Combines the latest BCI (EEG) and accelerometer readings into a single
-//! [`FusedReading`] with three higher-order cognitive feature scalars.
+//! `FusedReading` with three higher-order cognitive feature scalars.
 //!
 //! ## Feature derivation
 //!
@@ -28,7 +28,7 @@ use crate::{
 ///
 /// The `sequence_id` is typically the inference cycle counter.
 ///
-/// The [`FusedReading`] contains the timestamp, sequence ID, and sensor readings.
+/// The `FusedReading` contains the timestamp, sequence ID, and sensor readings.
 pub struct SensorFusion {
     bci: BciSensor,
     accel: AccelerometerSensor,
@@ -53,13 +53,13 @@ impl SensorFusion {
         }
     }
 
-    /// Sample both sensors and fuse into one [`FusedReading`].
+    /// Sample both sensors and fuse into one `FusedReading`.
     ///
     /// `sequence_id` is typically the inference cycle counter.
     ///
     /// # Returns
     ///
-    /// A [`FusedReading`] containing the timestamp, sequence ID, and sensor readings.
+    /// A `FusedReading` containing the timestamp, sequence ID, and sensor readings.
     pub fn sample(&mut self, sequence_id: u64) -> FusedReading {
         let bci = self.bci.sample();
         let accel = self.accel.sample();

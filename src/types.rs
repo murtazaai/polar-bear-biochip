@@ -164,7 +164,7 @@ impl fmt::Display for FusedReading {
     }
 }
 
-/// Output of the rig-core LLM agent after analysing a [`FusedReading`].
+/// Output of the rig-core LLM agent after analysing a `FusedReading`.
 ///
 /// The `Debug` implementation formats the result as a human-readable string.
 ///

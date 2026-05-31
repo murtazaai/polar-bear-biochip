@@ -384,7 +384,7 @@ impl Default for BioChipAgent {
 ///
 /// # Arguments
 ///
-/// * `r` - A reference to the [`FusedReading`] to format into a prompt string.
+/// * `r` - A reference to the `FusedReading` to format into a prompt string.
 ///
 /// # Returns
 ///

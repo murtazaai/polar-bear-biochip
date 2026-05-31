@@ -25,7 +25,7 @@ use crate::types::{AccelerometerReading, ActivityState};
 ///
 /// The sensor is updated at 50 Hz and provides readings in m/s² on each axis.
 ///
-/// The sensor state is maintained internally and updated each time [`sample`] is called.
+/// The sensor state is maintained internally and updated each time `sample` is called.
 pub struct AccelerometerSensor {
     rng: rand::rngs::ThreadRng,
     prev_x: f64,
