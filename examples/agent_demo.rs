@@ -14,17 +14,21 @@
 //! cargo run --example agent_demo
 //! ```
 
+/// A demo of the bio-chip agent using ARC sensor fusion.
 use polar_bear_biochip::{agent::BioChipAgent, sensors::fusion::SensorFusion};
 
+/// Runs the bio-chip agent demo using ARC sensor fusion.
+///
+/// This demo uses a simulated ARC sensor fusion to demonstrate the agent's
+/// behavior without requiring an API key or live inference.
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("╔══════════════════════════════════════════════════════════════════╗");
     println!("║       RIG (ARC) BIO-CHIP AGENT DEMO  ·  DRY-RUN MODE           ║");
     println!("╚══════════════════════════════════════════════════════════════════╝");
 
-    let demo  = std::env::var("ANTHROPIC_API_KEY").is_err();
-    let model = std::env::var("BIOCHIP_MODEL")
-        .unwrap_or_else(|_| "claude-sonnet-4-6".to_string());
+    let demo = std::env::var("ANTHROPIC_API_KEY").is_err();
+    let model = std::env::var("BIOCHIP_MODEL").unwrap_or_else(|_| "claude-sonnet-4-6".to_string());
 
     if demo {
         println!("  ⚠  DEMO MODE: set ANTHROPIC_API_KEY for live inference.");
@@ -35,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     }
     println!();
 
-    let agent  = BioChipAgent::new(&model, demo);
+    let agent = BioChipAgent::new(&model, demo);
     let mut fusion = SensorFusion::new();
 
     for id in 1..=3_u64 {

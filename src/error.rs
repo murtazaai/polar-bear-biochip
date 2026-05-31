@@ -5,9 +5,15 @@
 //! context chain, so `anyhow::Error::downcast_ref::<BiochipError>()` works
 //! wherever a specific variant must be matched.
 
+/// Re-exports the `thiserror::Error` derive macro.
 use thiserror::Error;
 
 /// Top-level error type for the `polar-bear-biochip` crate.
+///
+/// All errors returned by the crate's public APIs are of this type.
+///
+/// This type is re-exported so callers can match on specific error variants
+/// using `anyhow::Error::downcast_ref::<BiochipError>()`.
 #[derive(Error, Debug)]
 pub enum BiochipError {
     /// A sensor could not produce a valid reading.

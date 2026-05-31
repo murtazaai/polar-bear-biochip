@@ -39,8 +39,13 @@
 //! println!("Public key: {}", signer.public_key_hex());
 //! ```
 
+/// Re-exports error types for use by callers.
 pub mod agent;
+/// Re-exports error types for use by callers.
 pub mod error;
+/// Re-exports provenance types for use by callers.
 pub mod provenance;
+/// Re-exports sensor types for use by callers.
 pub mod sensors;
+/// Re-exports type definitions for use by callers.
 pub mod types;

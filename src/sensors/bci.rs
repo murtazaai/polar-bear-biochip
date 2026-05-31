@@ -16,6 +16,10 @@
 //! In production this module is replaced by the Emotiv SDK FFI bindings and
 //! the ICA (Independent Component Analysis) artifact-removal pipeline.
 
+/// A mock EEG BCI sensor with temporal smoothing.
+///
+/// Values evolve as a bounded random walk, ensuring realistic temporal
+/// correlation between successive samples.
 use chrono::Utc;
 use rand::Rng;
 
@@ -34,8 +38,22 @@ pub struct BciSensor {
     prev_gamma: f64,
 }
 
+/// Initialises a new [`BciSensor`] with randomised starting values in the awake resting range.
+///
+/// The starting values are chosen to be within the physiologically plausible range for an awake
+/// resting adult, with some random variation to simulate natural fluctuations in EEG activity.
+///
+/// The random number generator is seeded with the current time to ensure reproducibility.
+///
+/// The sensor is initialised with random values in the range [0, 1) to avoid edge cases.
 impl BciSensor {
     /// Initialise with randomised starting values in the awake resting range.
+    ///
+    /// The random number generator is seeded with the current time to ensure reproducibility.
+    ///
+    /// The sensor is initialised with random values in the range [0, 1) to avoid edge cases.
+    ///
+    /// Returns a new [`BciSensor`] instance.
     #[must_use]
     pub fn new() -> Self {
         let mut rng = rand::rng();
@@ -53,6 +71,8 @@ impl BciSensor {
     ///
     /// Each call advances the random walk by at most ±15 % of the band range,
     /// clamped to physiologically plausible bounds for an awake resting adult.
+    ///
+    /// Returns a [`BciReading`] with the sampled band frequencies and derived indices.
     pub fn sample(&mut self) -> BciReading {
         let alpha = smooth(self.prev_alpha, 8.0, 12.0, &mut self.rng);
         let beta = smooth(self.prev_beta, 12.0, 30.0, &mut self.rng);
@@ -84,31 +104,55 @@ impl BciSensor {
     }
 }
 
+/// A sensor that simulates a brain-computer interface (BCI) reading,
+/// using a random walk model to simulate EEG band frequencies and derived indices.
+///
+/// The sensor is initialised with random values in the range [0, 1) to avoid edge cases.
+///
+/// The [`Default`] implementation provides a convenient way to create a new sensor instance.
 impl Default for BciSensor {
     fn default() -> Self {
         Self::new()
     }
 }
 
-// ── helpers ───────────────────────────────────────────────────────────────────
-
 /// Advance `prev` by a bounded random step and clamp to `[min, max]`.
+///
+/// The noise is scaled by `(max - min) * 0.15` to avoid large jumps in the output.
+///
+/// The noise is generated using a random number generator to ensure reproducibility.
+///
+/// The result is clamped to `[min, max]` to avoid edge cases.
 fn smooth(prev: f64, min: f64, max: f64, rng: &mut rand::rngs::ThreadRng) -> f64 {
     let noise: f64 = (rng.random::<f64>() - 0.5) * (max - min) * 0.15;
     (prev + noise).clamp(min, max)
 }
 
 /// Round to 2 decimal places (avoids noisy float tails in JSON output).
+///
+/// The result is rounded to the nearest 0.01 to avoid floating point precision issues.
+///
+/// The result is clamped to `[0.0, 1.0]` to avoid negative values.
+///
+/// The result is rounded to 2 decimal places to avoid noisy float tails in JSON output.
+///
+/// The result is clamped to `[0.0, 1.0]` to avoid values outside the valid range.
 fn round2(v: f64) -> f64 {
     (v * 100.0).round() / 100.0
 }
 
-// ── unit tests ────────────────────────────────────────────────────────────────
-
+/// Tests for the `BciSensor` struct.
+///
+/// Tests that the `sample` method returns values within the valid range.
+///
+/// Tests that the `round2` function returns values within the valid range.
+///
+/// Tests that the `BciSensor` struct can be constructed without panicking.
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /// Tests that the `sample` method returns values within the valid range.
     #[test]
     fn sample_bands_within_clinical_range() {
         let mut sensor = BciSensor::new();
@@ -142,6 +186,7 @@ mod tests {
         }
     }
 
+    /// Tests that the `round2` function returns values within the valid range.
     #[test]
     fn derived_indices_within_unit_range() {
         let mut sensor = BciSensor::new();
@@ -160,6 +205,7 @@ mod tests {
         }
     }
 
+    /// Tests that the `BciSensor` struct can be constructed without panicking.
     #[test]
     fn default_constructs_without_panic() {
         let mut sensor = BciSensor::default();

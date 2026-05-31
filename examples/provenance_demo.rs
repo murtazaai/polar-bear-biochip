@@ -10,6 +10,7 @@
 //! cargo run --example provenance_demo
 //! ```
 
+/// Demonstrates ECDSA secp256k1 provenance using a simulated ARC sensor fusion.
 use polar_bear_biochip::{
     provenance::{EcdsaSigner, EcdsaVerifier},
     sensors::fusion::SensorFusion,
@@ -17,6 +18,10 @@ use polar_bear_biochip::{
 };
 use sha2::Digest;
 
+/// Runs the provenance demo, generating a key, signing an inference result, and verifying it.
+///
+/// This demo simulates an ARC sensor fusion, generates an inference result, and demonstrates
+/// the use of ECDSA secp256k1 for provenance verification.
 fn main() -> anyhow::Result<()> {
     println!("╔══════════════════════════════════════════════════════════════════╗");
     println!("║          ECDSA secp256k1 PROVENANCE - DEMO                      ║");

@@ -35,21 +35,22 @@
 //!                           EcdsaSigner::sign_result()
 //! ```
 
+/// The main biochip agent that handles sensor fusion and inference.
 use anyhow::{Context, Result};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
-
-use crate::types::{AlertLevel, FusedReading, InferenceResult};
-
 #[cfg(feature = "ai-agent")]
 use rig_core::{
     client::{CompletionClient, ProviderClient},
     completion::Prompt,
     providers::anthropic,
 };
+use serde::{Deserialize, Serialize};
 
-// ── System prompt ─────────────────────────────────────────────────────────────
+use crate::types::{AlertLevel, FusedReading, InferenceResult};
 
+/// The preamble for the biochip agent's system prompt.
+///
+/// This constant defines the system prompt that guides the agent's behavior.
 const PREAMBLE: &str = "\
 You are the inference core of a bio-chip intelligence system at Polar Bear Systems. \
 You receive fused readings from an EEG sensor and a 3-axis MEMS accelerometer. \
@@ -68,62 +69,111 @@ Interpretation guide:\n\
 - Running + high beta    → fight-or-flight state.\n\
 - Alpha coherence 0.7–0.9 + low load → optimal flow state.";
 
-// ── Anthropic API wire types (used by curl fallback only) ─────────────────────
-
+/// The request structure for the biochip agent's API call.
+///
+/// This struct is serialized into JSON for the API request.
+///
+/// # Fields
+///
+/// - `model`: The model to use for the API call.
+/// - `max_tokens`: The maximum number of tokens to generate.
+/// - `system`: The system prompt to use for the API call.
+/// - `messages`: The messages to send to the API call.
 #[derive(Serialize)]
 struct ApiRequest<'a> {
-    model:      &'a str,
+    model: &'a str,
     max_tokens: u32,
-    system:     &'a str,
-    messages:   Vec<ApiMessage<'a>>,
+    system: &'a str,
+    messages: Vec<ApiMessage<'a>>,
 }
 
+/// A message to send to the API call.
+///
+/// # Fields
+///
+/// - `role`: The role of the message sender.
+/// - `content`: The content of the message.
 #[derive(Serialize)]
 struct ApiMessage<'a> {
-    role:    &'a str,
+    role: &'a str,
     content: &'a str,
 }
 
+/// The response structure from the biochip agent's API call.
+///
+/// # Fields
+///
+/// - `content`: The content of the response.
+/// - `api_usage`: The API usage information.
 #[derive(Deserialize)]
 struct ApiResponse {
     content: Vec<ApiContent>,
 }
 
+/// The content of the response.
+///
+/// # Fields
+///
+/// - `text`: The text content of the response.
+/// - `api_usage`: The API usage information.
 #[derive(Deserialize)]
 struct ApiContent {
     text: Option<String>,
 }
-
-// ── Agent ─────────────────────────────────────────────────────────────────────
 
 /// Rig (ARC) Bio-Chip LLM agent.
 ///
 /// With `--features ai-agent` the backend is `rig-core` → `claude-sonnet-4-6`.
 /// Without the feature, inference falls back to a `curl` subprocess calling
 /// the Anthropic REST API directly - identical JSON payload, same schema.
+///
+/// # Fields
+///
+/// - `model`: The Anthropic model identifier.
+/// - `demo`: When `true`, returns deterministic demo responses without any API call.
+/// - `api_key`: The Anthropic API key (required when `demo = false`).
 pub struct BioChipAgent {
     /// Anthropic model identifier.
     model: String,
     /// When `true`, returns deterministic demo responses without any API call.
-    demo:  bool,
+    demo: bool,
 }
 
+/// The Rig (ARC) Bio-Chip LLM agent.
+///
+/// This agent uses an LLM to analyze biochip readings and provide insights.
 impl BioChipAgent {
     /// Construct a new agent.
     ///
     /// Pass `demo = true` to skip all live API calls (no key required).
+    ///
+    /// # Arguments
+    ///
+    /// - `model`: The Anthropic model identifier.
+    /// - `demo`: When `true`, returns deterministic demo responses without any API call.
+    ///
+    /// # Returns
+    ///
+    /// A new `BioChipAgent` instance.
     #[must_use]
     pub fn new(model: &str, demo: bool) -> Self {
         #[cfg(feature = "ai-agent")]
         let _ = dotenvy::dotenv();
 
-        Self { model: model.to_string(), demo }
+        Self {
+            model: model.to_string(),
+            demo,
+        }
     }
 
     /// Run one full inference cycle.
     ///
     /// # Errors
     /// Returns an error if the API call fails or the response cannot be parsed.
+    ///
+    /// # Returns
+    ///
+    /// The parsed inference result.
     pub async fn infer(&self, reading: FusedReading) -> Result<InferenceResult> {
         let raw = if self.demo {
             self.demo_response(&reading)
@@ -133,8 +183,14 @@ impl BioChipAgent {
         self.parse_response(reading, raw)
     }
 
-    // ── Live inference ────────────────────────────────────────────────────────
-
+    /// Runs live inference using the configured backend (Rig or curl).
+    ///
+    /// # Errors
+    /// Returns an error if the API call fails or the response cannot be parsed.
+    ///
+    /// # Returns
+    ///
+    /// The raw LLM response as a string.
     async fn live_inference(&self, reading: &FusedReading) -> Result<String> {
         #[cfg(feature = "ai-agent")]
         {
@@ -146,13 +202,19 @@ impl BioChipAgent {
         }
     }
 
-    // ── rig-core backend (feature = ai-agent) ─────────────────────────────────
-
+    /// Runs inference using the Rig (ARC) Bio-Chip LLM backend.
+    ///
+    /// # Errors
+    /// Returns an error if the API call fails or the response cannot be parsed.
+    ///
+    /// # Returns
+    ///
+    /// The raw LLM response as a string.
     #[cfg(feature = "ai-agent")]
     async fn rig_inference(&self, reading: &FusedReading) -> Result<String> {
         let client = anthropic::Client::from_env()
             .context("ANTHROPIC_API_KEY not set - pass --demo for offline mode")?;
-        let agent  = client
+        let agent = client
             .agent(self.model.as_str())
             .preamble(PREAMBLE)
             .max_tokens(512)
@@ -164,10 +226,14 @@ impl BioChipAgent {
             .map_err(|e| anyhow::anyhow!("rig-core inference error: {e}"))
     }
 
-    // ── curl fallback (no ai-agent feature) ───────────────────────────────────
-    // Mirrors the exact JSON payload that rig-core serialises internally.
-    // To switch to rig-core: `cargo build --features ai-agent`.
-
+    /// Runs inference using the curl fallback when the `ai-agent` feature is not enabled.
+    ///
+    /// # Errors
+    /// Returns an error if the API call fails or the response cannot be parsed.
+    ///
+    /// # Returns
+    ///
+    /// The raw LLM response as a string.
     #[cfg(not(feature = "ai-agent"))]
     fn curl_inference(&self, reading: &FusedReading) -> Result<String> {
         use std::process::Command;
@@ -176,21 +242,29 @@ impl BioChipAgent {
             .context("ANTHROPIC_API_KEY not set - pass --demo for offline demo mode")?;
 
         let body = serde_json::to_string(&ApiRequest {
-            model:      self.model.as_str(),
+            model: self.model.as_str(),
             max_tokens: 512,
-            system:     PREAMBLE,
-            messages:   vec![ApiMessage { role: "user", content: &build_prompt(reading) }],
+            system: PREAMBLE,
+            messages: vec![ApiMessage {
+                role: "user",
+                content: &build_prompt(reading),
+            }],
         })
         .context("failed to serialise API request")?;
 
         let output = Command::new("curl")
             .args([
-                "--silent", "--fail",
+                "--silent",
+                "--fail",
                 "https://api.anthropic.com/v1/messages",
-                "--header", "Content-Type: application/json",
-                "--header", &format!("x-api-key: {api_key}"),
-                "--header", "anthropic-version: 2023-06-01",
-                "--data",   body.as_str(),
+                "--header",
+                "Content-Type: application/json",
+                "--header",
+                &format!("x-api-key: {api_key}"),
+                "--header",
+                "anthropic-version: 2023-06-01",
+                "--data",
+                body.as_str(),
             ])
             .output()
             .context("curl subprocess failed - install curl or use --demo")?;
@@ -204,8 +278,8 @@ impl BioChipAgent {
             );
         }
 
-        let resp: ApiResponse = serde_json::from_slice(&output.stdout)
-            .context("failed to parse Anthropic response")?;
+        let resp: ApiResponse =
+            serde_json::from_slice(&output.stdout).context("failed to parse Anthropic response")?;
 
         resp.content
             .into_iter()
@@ -213,8 +287,11 @@ impl BioChipAgent {
             .context("empty content array in Anthropic response")
     }
 
-    // ── Demo responses ────────────────────────────────────────────────────────
-
+    /// Returns a demo response based on the reading, without making an API call.
+    ///
+    /// # Returns
+    ///
+    /// The raw LLM response as a string.
     fn demo_response(&self, r: &FusedReading) -> String {
         if r.bci.delta_hz > 3.2 || r.bci.theta_hz > 7.0 {
             r#"{"cognitive_state":"Excessive slow-wave activity indicating acute fatigue - microsleep risk detected","alert_level":"Critical","recommendations":["IMMEDIATE: discontinue any safety-critical or high-risk activity","Initiate a 20-minute NREM power-nap protocol to restore prefrontal cortex function","Re-schedule all cognitively demanding tasks to the post-recovery window"]}"#
@@ -228,8 +305,14 @@ impl BioChipAgent {
         .to_string()
     }
 
-    // ── Response parser ───────────────────────────────────────────────────────
-
+    /// Parses the raw LLM response into an [`InferenceResult`].
+    ///
+    /// # Errors
+    /// Returns an error if the response cannot be parsed.
+    ///
+    /// # Returns
+    ///
+    /// The parsed inference result.
     fn parse_response(&self, reading: FusedReading, raw: String) -> Result<InferenceResult> {
         let clean = raw
             .trim()
@@ -249,18 +332,23 @@ impl BioChipAgent {
         let alert_level = match v["alert_level"].as_str().unwrap_or("Normal") {
             "Elevated" => AlertLevel::Elevated,
             "Critical" => AlertLevel::Critical,
-            _          => AlertLevel::Normal,
+            _ => AlertLevel::Normal,
         };
 
         let recommendations = v["recommendations"]
             .as_array()
-            .map(|arr| arr.iter().filter_map(|x| x.as_str()).map(String::from).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|x| x.as_str())
+                    .map(String::from)
+                    .collect()
+            })
             .unwrap_or_default();
 
         Ok(InferenceResult {
-            timestamp:        Utc::now(),
-            sequence_id:      reading.sequence_id,
-            fused_reading:    reading,
+            timestamp: Utc::now(),
+            sequence_id: reading.sequence_id,
+            fused_reading: reading,
             cognitive_state,
             recommendations,
             alert_level,
@@ -269,14 +357,31 @@ impl BioChipAgent {
     }
 }
 
+/// Default implementation of [`BioChipAgent`] that uses the Claude Sonnet 4.6 model in demo mode.
+///
+/// This is a convenience method that creates a [`BioChipAgent`] instance with the default model and
+/// demo mode enabled.
+///
+/// This is the recommended way to create a [`BioChipAgent`] instance when using the default model
+/// and demo mode.
 impl Default for BioChipAgent {
     fn default() -> Self {
         Self::new("claude-sonnet-4-6", true)
     }
 }
 
-// ── Prompt builder ────────────────────────────────────────────────────────────
-
+/// Builds the prompt string for the LLM based on the given fused reading.
+///
+/// This function formats the fused reading into a human-readable prompt string that can be used
+/// as input to the LLM.
+///
+/// # Arguments
+///
+/// * `r` - A reference to the [`FusedReading`] to format into a prompt string.
+///
+/// # Returns
+///
+/// A [`String`] containing the formatted prompt.
 fn build_prompt(r: &FusedReading) -> String {
     format!(
         "Reading #{seq} @ {ts}\n\
@@ -284,25 +389,48 @@ fn build_prompt(r: &FusedReading) -> String {
          Indices: attention={att:.2} meditation={med:.2}\n\
          Fused: cognitive_load={cl:.2} emotional_valence={ev:+.2} arousal={ar:.2}\n\
          Accel (m/s²): x={x:+.2} y={y:+.2} z={z:.2} mag={m:.2} state={state:?}",
-        seq   = r.sequence_id,
-        ts    = r.timestamp.format("%Y-%m-%dT%H:%M:%SZ"),
-        d     = r.bci.delta_hz,  t  = r.bci.theta_hz,
-        a     = r.bci.alpha_hz,  b  = r.bci.beta_hz,  g  = r.bci.gamma_hz,
-        att   = r.bci.attention_index, med = r.bci.meditation_index,
-        cl    = r.cognitive_load, ev = r.emotional_valence, ar = r.arousal_level,
-        x     = r.accelerometer.x,    y = r.accelerometer.y,
-        z     = r.accelerometer.z,    m = r.accelerometer.magnitude,
+        seq = r.sequence_id,
+        ts = r.timestamp.format("%Y-%m-%dT%H:%M:%SZ"),
+        d = r.bci.delta_hz,
+        t = r.bci.theta_hz,
+        a = r.bci.alpha_hz,
+        b = r.bci.beta_hz,
+        g = r.bci.gamma_hz,
+        att = r.bci.attention_index,
+        med = r.bci.meditation_index,
+        cl = r.cognitive_load,
+        ev = r.emotional_valence,
+        ar = r.arousal_level,
+        x = r.accelerometer.x,
+        y = r.accelerometer.y,
+        z = r.accelerometer.z,
+        m = r.accelerometer.magnitude,
         state = r.accelerometer.activity_state,
     )
 }
 
-// ── unit tests ────────────────────────────────────────────────────────────────
-
+/// Unit tests for the [`BioChipAgent`] struct.
+///
+/// These tests verify the behavior of the [`BioChipAgent`] struct, including its ability to parse
+/// fused readings and generate responses in demo mode.
+///
+/// Each test uses a [`SensorFusion`] instance to simulate sensor readings and verifies that the
+/// agent responds correctly in each scenario.
+///
+/// Tests include:
+/// - `demo_mode_parses_all_scenarios`: Verifies the agent can parse multiple demo scenarios.
+/// - `demo_mode_`: Verifies the agent responds correctly to a single demo scenario.
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::sensors::fusion::SensorFusion;
 
+    /// Verifies the agent can parse multiple demo scenarios.
+    ///
+    /// This test runs multiple cycles to exercise multiple demo branches and verifies that the
+    /// agent responds correctly to each scenario.
+    ///
+    /// Each cycle simulates a sensor reading and verifies that the agent responds without errors.
     #[test]
     fn demo_mode_parses_all_scenarios() {
         let agent = BioChipAgent::new("claude-sonnet-4-6", true);
@@ -319,12 +447,27 @@ mod tests {
         }
     }
 
+    /// Verifies the default agent is in demo mode.
+    ///
+    /// This test ensures that the default agent (created with no model or API key) is in demo mode,
+    /// which is the expected behavior when no API key is available.
     #[test]
     fn default_agent_is_in_demo_mode() {
         let agent = BioChipAgent::default();
-        assert!(agent.demo, "default agent must be in demo mode (no API key available in tests)");
+        assert!(
+            agent.demo,
+            "default agent must be in demo mode (no API key available in tests)"
+        );
     }
 
+    /// Verifies the build prompt contains the sequence ID.
+    ///
+    /// This test ensures that the build prompt includes the sequence ID of the sensor reading,
+    /// which is used to identify the reading in the prompt.
+    ///
+    /// This test verifies that the sequence ID is correctly embedded in the prompt.
+    ///
+    /// This test uses a fixed sequence ID (42) to ensure the prompt is correctly formatted.
     #[test]
     fn build_prompt_contains_sequence_id() {
         let mut fusion = SensorFusion::new();

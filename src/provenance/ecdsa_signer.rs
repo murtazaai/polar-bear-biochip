@@ -29,6 +29,7 @@
 //! - 256-bit security at ~128-bit classical security level
 //! - 64-byte compact signatures (low overhead in JSON provenance records)
 
+/// A wrapper around `k256`'s ECDSA signing functionality.
 use anyhow::{Result, anyhow};
 use chrono::Utc;
 use k256::{
@@ -50,12 +51,26 @@ use crate::types::{InferenceResult, SignedOutput};
 /// # Security
 /// The private key is zeroed on drop via k256's `ZeroizeOnDrop`.
 /// Never serialise the private scalar to logs, JSON responses, or env vars.
+///
+/// This struct provides a convenient interface for signing ECDSA signatures using a secp256k1
+/// private key.
 pub struct EcdsaSigner {
     signing_key: SigningKey,
 }
 
+/// A convenience method for generating a fresh ephemeral keypair using a cryptographically secure
+/// RNG.
+///
+/// This method is intended for use in testing and development only.
+/// In production, use [`EcdsaSigner::from_bytes`] with a trusted private key.
+///
+/// # Returns
+/// A new [`EcdsaSigner`] instance with a fresh ephemeral keypair.
 impl EcdsaSigner {
     /// Generate a fresh ephemeral keypair using a cryptographically secure RNG.
+    ///
+    /// # Returns
+    /// A new [`EcdsaSigner`] instance with a fresh ephemeral keypair.
     #[must_use]
     pub fn generate() -> Self {
         Self {
@@ -67,6 +82,9 @@ impl EcdsaSigner {
     ///
     /// # Errors
     /// Returns an error if `bytes` is not a valid scalar in \[1, n-1\].
+    ///
+    /// # Returns
+    /// A new [`EcdsaSigner`] instance with the restored private key.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
         let signing_key = SigningKey::from_slice(bytes)
             .map_err(|e| anyhow!("invalid ECDSA private key bytes: {e}"))?;
@@ -74,14 +92,21 @@ impl EcdsaSigner {
     }
 
     /// Restore a signer from a lowercase hex-encoded private scalar (64 chars).
+    ///
+    /// # Errors
+    /// Returns an error if `hex_str` is not a valid hex-encoded scalar in \[1, n-1\].
+    ///
+    /// # Returns
+    /// A new [`EcdsaSigner`] instance with the restored private key.
     pub fn from_hex(hex_str: &str) -> Result<Self> {
         let bytes = hex::decode(hex_str).map_err(|e| anyhow!("hex decode: {e}"))?;
         Self::from_bytes(&bytes)
     }
 
-    // ── Serialisation ─────────────────────────────────────────────────────────
-
     /// Export the private key as 32 raw bytes.  **Never** log or transmit this.
+    ///
+    /// # Returns
+    /// The private key as a 32-byte array.
     #[must_use]
     pub fn private_key_bytes(&self) -> [u8; 32] {
         self.signing_key.to_bytes().into()
@@ -96,6 +121,9 @@ impl EcdsaSigner {
     /// Export the **uncompressed** 65-byte SEC 1 public key (04‖x‖y).
     ///
     /// Used as the embedded public key in [`SignedOutput`] for offline verification.
+    ///
+    /// # Returns
+    /// The public key as a lowercase hex string (65 chars).
     #[must_use]
     pub fn public_key_hex(&self) -> String {
         let vk = VerifyingKey::from(&self.signing_key);
@@ -103,6 +131,9 @@ impl EcdsaSigner {
     }
 
     /// Export the **compressed** 33-byte SEC 1 public key.
+    ///
+    /// # Returns
+    /// The public key as a lowercase hex string (33 chars).
     #[must_use]
     pub fn verifying_key_hex(&self) -> String {
         let vk = VerifyingKey::from(&self.signing_key);
@@ -121,6 +152,9 @@ impl EcdsaSigner {
     ///
     /// # Errors
     /// Returns an error if JSON serialisation fails.
+    ///
+    /// # Returns
+    /// A new [`SignedOutput`] instance with the signed result and public key.
     pub fn sign_result(&self, result: &InferenceResult) -> Result<SignedOutput> {
         let payload_json =
             serde_json::to_string(result).map_err(|e| anyhow!("JSON serialise: {e}"))?;
@@ -144,11 +178,12 @@ impl EcdsaSigner {
     ///
     /// # Errors
     /// Returns an error if the hex is malformed or the signature bytes are invalid.
+    ///
+    /// # Returns
+    /// `true` if the signature is valid, `false` otherwise.
     pub fn verify(&self, message: &[u8], signature_hex: &str) -> Result<bool> {
         EcdsaVerifier::from_hex(&self.public_key_hex())?.verify(message, signature_hex)
     }
-
-    // ── Offline verification ──────────────────────────────────────────────────
 
     /// Verify a [`SignedOutput`] entirely from its embedded fields.
     ///
@@ -160,6 +195,9 @@ impl EcdsaSigner {
     /// # Errors
     /// Returns an error on hex decode failure, invalid key material, or
     /// JSON re-serialisation failure.
+    ///
+    /// # Returns
+    /// `true` if the signature is valid, `false` otherwise.
     pub fn verify_signed(signed: &SignedOutput) -> Result<bool> {
         let payload_json = serde_json::to_string(&signed.inference_result)
             .map_err(|e| anyhow!("re-serialise: {e}"))?;
@@ -169,8 +207,6 @@ impl EcdsaSigner {
     }
 }
 
-// ── EcdsaVerifier ─────────────────────────────────────────────────────────────
-
 /// Standalone public-key verifier - no private key required.
 ///
 /// Useful for offline audit tools that receive a [`SignedOutput`] JSON and
@@ -179,12 +215,16 @@ pub struct EcdsaVerifier {
     verifying_key: VerifyingKey,
 }
 
+/// Standalone public-key verifier - no private key required.
 impl EcdsaVerifier {
     /// Construct from a compressed (33-byte / 66-char hex) or
     /// uncompressed (65-byte / 130-char hex) SEC 1 public key.
     ///
     /// # Errors
     /// Returns an error if the hex is malformed or the point is not on secp256k1.
+    ///
+    /// # Returns
+    /// A new [`EcdsaVerifier`] instance.
     pub fn from_hex(hex_str: &str) -> Result<Self> {
         let bytes = hex::decode(hex_str).map_err(|e| anyhow!("hex decode: {e}"))?;
         let point =
@@ -198,6 +238,9 @@ impl EcdsaVerifier {
     ///
     /// # Errors
     /// Returns an error if the hex or signature bytes are malformed.
+    ///
+    /// # Returns
+    /// `true` if the signature is valid, `false` otherwise.
     pub fn verify(&self, message: &[u8], signature_hex: &str) -> Result<bool> {
         let sig_bytes = hex::decode(signature_hex).map_err(|e| anyhow!("sig hex decode: {e}"))?;
         let signature = Signature::from_slice(&sig_bytes)
@@ -206,15 +249,21 @@ impl EcdsaVerifier {
     }
 }
 
-// ── unit tests ────────────────────────────────────────────────────────────────
-
+/// Unit tests for [`EcdsaSigner`] and [`EcdsaVerifier`].
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::sensors::fusion::SensorFusion;
-    use crate::types::{AlertLevel, InferenceResult};
     use chrono::Utc;
 
+    use super::*;
+    use crate::{
+        sensors::fusion::SensorFusion,
+        types::{AlertLevel, InferenceResult},
+    };
+
+    /// Creates a dummy [`InferenceResult`] for testing purposes.
+    ///
+    /// # Returns
+    /// A new [`InferenceResult`] instance with a dummy timestamp and sequence ID.
     fn dummy_result(seq: u64) -> InferenceResult {
         let mut fusion = SensorFusion::new();
         InferenceResult {
@@ -230,6 +279,10 @@ mod tests {
         }
     }
 
+    /// Verifies that a valid signature can be verified by the signer's public key.
+    ///
+    /// # Assertions
+    /// - The signature should be verified successfully.
     #[test]
     fn sign_verify_roundtrip() {
         let signer = EcdsaSigner::generate();
@@ -239,6 +292,10 @@ mod tests {
         assert!(EcdsaSigner::verify_signed(&signed).unwrap());
     }
 
+    /// Verifies that a tampered cognitive state fails verification.
+    ///
+    /// # Assertions
+    /// - The signature should not be verified successfully.
     #[test]
     fn tampered_cognitive_state_fails_verification() {
         let signer = EcdsaSigner::generate();
@@ -248,6 +305,10 @@ mod tests {
         assert!(!EcdsaSigner::verify_signed(&signed).unwrap());
     }
 
+    /// Verifies that a tampered signature fails verification.
+    ///
+    /// # Assertions
+    /// - The signature should not be verified successfully.
     #[test]
     fn tampered_signature_fails_verification() {
         let signer = EcdsaSigner::generate();
@@ -265,6 +326,10 @@ mod tests {
         );
     }
 
+    /// Verifies that a tampered cognitive state fails verification.
+    ///
+    /// # Assertions
+    /// - The signature should not be verified successfully.
     #[test]
     fn from_hex_roundtrip_preserves_public_key() {
         let original = EcdsaSigner::generate();
@@ -273,6 +338,10 @@ mod tests {
         assert_eq!(original.public_key_hex(), restored.public_key_hex());
     }
 
+    /// Verifies that a standalone verifier accepts a valid signature.
+    ///
+    /// # Assertions
+    /// - The signature should be verified successfully.
     #[test]
     fn standalone_verifier_accepts_valid_signature() {
         let signer = EcdsaSigner::generate();
@@ -288,6 +357,10 @@ mod tests {
         assert!(verifier.verify(&hash, &signed.signature_hex).unwrap());
     }
 
+    /// Verifies that a standalone verifier rejects an invalid signature.
+    ///
+    /// # Assertions
+    /// - The signature should not be verified successfully.
     #[test]
     fn cross_key_verification_fails() {
         let signer_a = EcdsaSigner::generate();
@@ -303,6 +376,10 @@ mod tests {
         assert!(!verifier_b.verify(&hash, &signed.signature_hex).unwrap());
     }
 
+    /// Verifies that the public key hex string is 130 characters (uncompressed).
+    ///
+    /// # Assertions
+    /// - The public key hex string should be 130 characters long.
     #[test]
     fn public_key_hex_is_130_chars_uncompressed() {
         let signer = EcdsaSigner::generate();
@@ -310,6 +387,10 @@ mod tests {
         assert_eq!(signer.public_key_hex().len(), 130);
     }
 
+    /// Verifies that the signature hex string is 128 characters.
+    ///
+    /// # Assertions
+    /// - The signature hex string should be 128 characters long.
     #[test]
     fn signature_hex_is_128_chars() {
         let signer = EcdsaSigner::generate();

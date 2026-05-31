@@ -1,16 +1,15 @@
 //! Integration tests - sensor layer
 
 use polar_bear_biochip::{
-    sensors::{
-        accelerometer::AccelerometerSensor,
-        bci::BciSensor,
-        fusion::SensorFusion,
-    },
+    sensors::{accelerometer::AccelerometerSensor, bci::BciSensor, fusion::SensorFusion},
     types::ActivityState,
 };
 
-// ── BCI sensor ────────────────────────────────────────────────────────────────
-
+/// Verifies that the BCI sensor produces valid band power values over many samples.
+///
+/// This test is part of the [`BciSensor`] struct's public key generation and verification.
+///
+/// This test ensures that the BCI sensor produces valid band power values over many samples.
 #[test]
 fn bci_produces_valid_bands_over_many_samples() {
     let mut sensor = BciSensor::new();
@@ -24,6 +23,10 @@ fn bci_produces_valid_bands_over_many_samples() {
     }
 }
 
+/// Verifies that the BCI sensor produces valid attention and meditation index values over many
+/// samples.
+///
+/// This test is part of the [`BciSensor`] struct's public key generation and verification.
 #[test]
 fn bci_attention_index_within_unit_interval() {
     let mut sensor = BciSensor::new();
@@ -37,6 +40,9 @@ fn bci_attention_index_within_unit_interval() {
     }
 }
 
+/// Verifies that the BCI sensor produces valid meditation index values over many samples.
+///
+/// This test is part of the [`BciSensor`] struct's public key generation and verification.
 #[test]
 fn bci_meditation_index_within_unit_interval() {
     let mut sensor = BciSensor::new();
@@ -50,26 +56,44 @@ fn bci_meditation_index_within_unit_interval() {
     }
 }
 
-// ── Accelerometer sensor ──────────────────────────────────────────────────────
-
+/// Verifies that the accelerometer sensor produces valid gravity axis values over many samples.
+///
+/// This test is part of the [`AccelerometerSensor`] struct's public key generation and
+/// verification.
 #[test]
 fn accelerometer_gravity_axis_within_bounds() {
     let mut sensor = AccelerometerSensor::new();
     for _ in 0..200 {
         let r = sensor.sample();
-        assert!((8.5..=11.0).contains(&r.z), "z out of gravity range: {}", r.z);
+        assert!(
+            (8.5..=11.0).contains(&r.z),
+            "z out of gravity range: {}",
+            r.z
+        );
     }
 }
 
+/// Verifies that the accelerometer sensor produces valid magnitude values over many samples.
+///
+/// This test is part of the [`AccelerometerSensor`] struct's public key generation and
+/// verification.
 #[test]
 fn accelerometer_magnitude_always_positive() {
     let mut sensor = AccelerometerSensor::new();
     for _ in 0..100 {
         let r = sensor.sample();
-        assert!(r.magnitude > 0.0, "magnitude must be positive: {}", r.magnitude);
+        assert!(
+            r.magnitude > 0.0,
+            "magnitude must be positive: {}",
+            r.magnitude
+        );
     }
 }
 
+/// Verifies that the accelerometer sensor produces valid activity state values over many samples.
+///
+/// This test is part of the [`AccelerometerSensor`] struct's public key generation and
+/// verification.
 #[test]
 fn accelerometer_activity_states_are_valid_variants() {
     let mut sensor = AccelerometerSensor::new();
@@ -85,8 +109,9 @@ fn accelerometer_activity_states_are_valid_variants() {
     }
 }
 
-// ── Sensor fusion ─────────────────────────────────────────────────────────────
-
+/// Verifies that the sensor fusion produces valid cognitive load values over many samples.
+///
+/// This test is part of the [`SensorFusion`] struct's public key generation and verification.
 #[test]
 fn fusion_cognitive_load_within_unit_interval() {
     let mut fusion = SensorFusion::new();
@@ -100,6 +125,9 @@ fn fusion_cognitive_load_within_unit_interval() {
     }
 }
 
+/// Verifies that the sensor fusion produces valid emotional valence values over many samples.
+///
+/// This test is part of the [`SensorFusion`] struct's public key generation and verification.
 #[test]
 fn fusion_emotional_valence_within_bipolar_interval() {
     let mut fusion = SensorFusion::new();
@@ -113,6 +141,9 @@ fn fusion_emotional_valence_within_bipolar_interval() {
     }
 }
 
+/// Verifies that the sensor fusion produces valid arousal level values over many samples.
+///
+/// This test is part of the [`SensorFusion`] struct's public key generation and verification.
 #[test]
 fn fusion_arousal_within_unit_interval() {
     let mut fusion = SensorFusion::new();
@@ -126,6 +157,9 @@ fn fusion_arousal_within_unit_interval() {
     }
 }
 
+/// Verifies that the sensor fusion preserves sequence IDs exactly as provided.
+///
+/// This test is part of the [`SensorFusion`] struct's public key generation and verification.
 #[test]
 fn fusion_sequence_id_is_preserved_exactly() {
     let mut fusion = SensorFusion::new();
@@ -137,7 +171,7 @@ fn fusion_sequence_id_is_preserved_exactly() {
 #[test]
 fn fusion_timestamps_are_monotonically_non_decreasing() {
     let mut fusion = SensorFusion::new();
-    let mut prev   = fusion.sample(1).timestamp;
+    let mut prev = fusion.sample(1).timestamp;
     for id in 2..=20_u64 {
         let curr = fusion.sample(id).timestamp;
         assert!(curr >= prev, "timestamp went backwards at id={id}");

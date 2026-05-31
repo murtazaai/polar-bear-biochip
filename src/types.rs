@@ -8,6 +8,7 @@
 //! AccelReading┘
 //! ```
 
+/// Represents a raw sensor reading from the BCI sensor (Emotiv EPOC-compatible).
 use std::fmt;
 
 use chrono::{DateTime, Utc};
@@ -38,7 +39,15 @@ pub struct BciReading {
     pub meditation_index: f64,
 }
 
+/// Represents a raw sensor reading from the BCI sensor (Emotiv EPOC-compatible).
+///
+/// This struct holds the raw sensor readings from the BCI sensor, including delta, theta, alpha,
+/// beta, and gamma band frequencies, as well as derived attention and meditation indices.
 impl fmt::Display for BciReading {
+    /// Formats this reading as a human-readable string.
+    ///
+    /// The output includes the delta, theta, alpha, beta, and gamma band frequencies, as well as
+    /// the derived attention and meditation indices.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -55,6 +64,9 @@ impl fmt::Display for BciReading {
 }
 
 /// 3-axis MEMS accelerometer reading (units: m/s²).
+///
+/// This struct holds the raw accelerometer readings from the MEMS sensor, including lateral,
+/// sagittal, and vertical acceleration, as well as the inferred physical activity state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccelerometerReading {
     /// UTC timestamp of this sample.
@@ -71,7 +83,16 @@ pub struct AccelerometerReading {
     pub activity_state: ActivityState,
 }
 
+/// Inferred physical activity state derived from accelerometer magnitude and
+/// lateral dynamics.
+///
+/// This enum represents the inferred physical activity state based on the accelerometer readings.
+///
+/// The `Display` implementation formats the reading as a human-readable string.
 impl fmt::Display for AccelerometerReading {
+    /// Formats the reading as a human-readable string.
+    ///
+    /// The string includes the x, y, z acceleration values and the inferred activity state.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -83,6 +104,14 @@ impl fmt::Display for AccelerometerReading {
 
 /// Inferred physical activity state derived from accelerometer magnitude and
 /// lateral dynamics.
+///
+/// This enum represents the inferred physical activity state based on the accelerometer readings.
+///
+/// The `Display` implementation formats the state as a human-readable string.
+///
+/// The `Debug` implementation formats the state as a human-readable string.
+///
+/// The `Serialize` and `Deserialize` implementations allow the state to be encoded and decoded.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ActivityState {
     /// Net magnitude ≤ 10.8 m/s² - no significant motion.
@@ -95,10 +124,12 @@ pub enum ActivityState {
     Gesture,
 }
 
-// ── Fused reading ─────────────────────────────────────────────────────────────
-
 /// Sensor-fused reading combining BCI + accelerometer into higher-order
 /// cognitive features. This is the payload forwarded to the LLM agent.
+///
+/// The `Debug` implementation formats the reading as a human-readable string.
+///
+/// The `Serialize` and `Deserialize` implementations allow the reading to be encoded and decoded.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FusedReading {
     /// UTC timestamp of fusion.
@@ -117,6 +148,12 @@ pub struct FusedReading {
     pub arousal_level: f64,
 }
 
+/// Formats the reading as a human-readable string.
+///
+/// The string includes the sequence ID, cognitive load, emotional valence, and arousal level.
+///
+/// The format is: `#<sequence_id> cogLoad=<cognitive_load> valence=<emotional_valence>
+/// arousal=<arousal_level>`
 impl fmt::Display for FusedReading {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -127,9 +164,13 @@ impl fmt::Display for FusedReading {
     }
 }
 
-// ── Inference result ──────────────────────────────────────────────────────────
-
 /// Output of the rig-core LLM agent after analysing a [`FusedReading`].
+///
+/// The `Debug` implementation formats the result as a human-readable string.
+///
+/// The `Serialize` and `Deserialize` implementations allow the result to be encoded and decoded.
+///
+/// The `Display` implementation formats the result as a human-readable string.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceResult {
     /// UTC timestamp of the inference.
@@ -149,6 +190,8 @@ pub struct InferenceResult {
 }
 
 /// Alert severity derived from the LLM's cognitive state classification.
+///
+/// The `Display` implementation formats the severity as a human-readable string.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AlertLevel {
     /// Readings within expected healthy operating range.
@@ -159,17 +202,25 @@ pub enum AlertLevel {
     Critical,
 }
 
+/// Formats the alert level as a human-readable string.
+///
+/// The string is formatted as `✅ Normal`, `⚠️  Elevated`, or `🚨 CRITICAL`.
+///
+/// The `Debug` implementation formats the severity as a human-readable string.
+///
+/// The `Display` implementation formats the severity as a human-readable string.
 impl fmt::Display for AlertLevel {
+    /// Formats the alert level as a human-readable string.
+    ///
+    /// The string is formatted as `✅ Normal`, `⚠️  Elevated`, or `🚨 CRITICAL`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AlertLevel::Normal   => write!(f, "✅ Normal"),
+            AlertLevel::Normal => write!(f, "✅ Normal"),
             AlertLevel::Elevated => write!(f, "⚠️  Elevated"),
             AlertLevel::Critical => write!(f, "🚨 CRITICAL"),
         }
     }
 }
-
-// ── Signed output (provenance layer) ─────────────────────────────────────────
 
 /// ECDSA-signed wrapper around an [`InferenceResult`].
 ///

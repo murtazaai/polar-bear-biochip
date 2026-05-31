@@ -10,22 +10,23 @@
 //!   verify    Verify a signed output file offline
 //! ```
 
+/// The main CLI entrypoint.
 use std::path::Path;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use sha2::Digest;
-use tracing::{info, warn};
-
 use polar_bear_biochip::{
     agent::BioChipAgent,
     provenance::{EcdsaSigner, EcdsaVerifier},
     sensors::SensorFusion,
     types::{AlertLevel, SignedOutput},
 };
+use sha2::Digest;
+use tracing::{info, warn};
 
-// ── CLI ───────────────────────────────────────────────────────────────────────
-
+/// The main CLI entrypoint.
+///
+/// This is the entrypoint for the `polar-bear-biochip` CLI tool.
 #[derive(Parser)]
 #[command(
     name = "polar-bear-biochip",
@@ -40,6 +41,9 @@ struct Cli {
     command: Option<Commands>,
 }
 
+/// The available subcommands for the `polar-bear-biochip` CLI tool.
+///
+/// Each subcommand corresponds to a different operation or mode of the tool.
 #[derive(Subcommand)]
 enum Commands {
     /// Run the inference pipeline (default when no subcommand given).
@@ -69,8 +73,13 @@ enum Commands {
     },
 }
 
-// ── Entry point ───────────────────────────────────────────────────────────────
-
+/// The entrypoint for the `polar-bear-biochip` CLI tool.
+///
+/// This is the entrypoint for the `polar-bear-biochip` CLI tool.
+///
+/// It parses the command-line arguments and dispatches the appropriate subcommand.
+///
+/// Returns `Ok(())` on success, or an error if something went wrong.
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -98,8 +107,13 @@ async fn main() -> Result<()> {
     }
 }
 
-// ── `run` command ─────────────────────────────────────────────────────────────
-
+/// Runs the `polar-bear-biochip` CLI tool in run mode.
+///
+/// This function is responsible for running the `polar-bear-biochip` CLI tool in run mode.
+///
+/// It parses the command-line arguments and dispatches the appropriate subcommand.
+///
+/// Returns `Ok(())` on success, or an error if something went wrong.
 async fn cmd_run(cycles: u32, demo: bool, output_dir: &Path, model: &str) -> Result<()> {
     println!();
     println!("  ╔═══════════════════════════════════════════════════╗");
@@ -157,8 +171,25 @@ async fn cmd_run(cycles: u32, demo: bool, output_dir: &Path, model: &str) -> Res
     Ok(())
 }
 
-// ── Single inference cycle ────────────────────────────────────────────────────
-
+/// Runs a single inference cycle of the `polar-bear-biochip` CLI tool.
+///
+/// This function is responsible for running a single inference cycle of the `polar-bear-biochip`
+/// CLI tool.
+///
+/// It performs the inference cycle, writes the output to disk, and returns.
+///
+/// # Arguments
+///
+/// * `cycle` - The cycle number to run.
+/// * `total` - The total number of cycles to run.
+/// * `fusion` - The sensor fusion instance to use.
+/// * `agent` - The biochip agent instance to use.
+/// * `signer` - The ECDSA signer instance to use.
+/// * `output_dir` - The directory to write the output to.
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success, or an error if something went wrong.
 async fn run_cycle(
     cycle: u32,
     total: u32,
@@ -240,8 +271,17 @@ async fn run_cycle(
     Ok(())
 }
 
-// ── `verify` command ──────────────────────────────────────────────────────────
-
+/// Verifies the ECDSA signature of a signed output file.
+///
+/// This function is responsible for verifying the ECDSA signature of a signed output file.
+///
+/// # Arguments
+///
+/// * `path` - The path to the signed output file to verify.
+///
+/// # Returns
+///
+/// Returns `Ok(())` on success, or an error if something went wrong.
 fn cmd_verify(path: &Path) -> Result<()> {
     println!();
     println!("  Verifying: {}", path.display());

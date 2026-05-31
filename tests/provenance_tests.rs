@@ -7,8 +7,9 @@ use polar_bear_biochip::{
 };
 use sha2::Digest;
 
-// ── Test helper ───────────────────────────────────────────────────────────────
-
+/// Helper function to create a sample [`InferenceResult`] for testing.
+///
+/// Returns an [`InferenceResult`] with a sample fused reading and sequence ID.
 fn make_result(seq: u64) -> InferenceResult {
     let mut fusion = SensorFusion::new();
     InferenceResult {
@@ -23,8 +24,16 @@ fn make_result(seq: u64) -> InferenceResult {
     }
 }
 
-// ── Public key geometry ───────────────────────────────────────────────────────
-
+/// Verifies that the public key is 130 hex characters in length and starts with `04`
+/// (uncompressed).
+///
+/// The public key is uncompressed, so it should start with `04` and be 130 hex characters in
+/// length.
+///
+/// This test ensures that the public key is correctly formatted and can be used for ECDSA
+/// operations.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
 #[test]
 fn public_key_is_130_hex_chars_uncompressed() {
     let signer = EcdsaSigner::generate();
@@ -36,6 +45,16 @@ fn public_key_is_130_hex_chars_uncompressed() {
     );
 }
 
+/// Verifies that the verifying key is 66 hex characters in length and starts with `02` or `03`
+/// (compressed).
+///
+/// The verifying key is compressed, so it should start with `02` or `03` and be 66 hex
+/// characters in length.
+///
+/// This test ensures that the verifying key is correctly formatted and can be used for ECDSA
+/// operations.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
 #[test]
 fn verifying_key_is_66_hex_chars_compressed() {
     let signer = EcdsaSigner::generate();
@@ -48,8 +67,13 @@ fn verifying_key_is_66_hex_chars_compressed() {
     );
 }
 
-// ── Sign / verify round-trip ──────────────────────────────────────────────────
-
+/// Verifies that the signature and payload hash are correctly formatted and can be used for ECDSA
+/// operations.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the signature and payload hash are correctly formatted and can be used
+/// for ECDSA operations.
 #[test]
 fn sign_verify_roundtrip_is_valid() {
     let signer = EcdsaSigner::generate();
@@ -57,6 +81,13 @@ fn sign_verify_roundtrip_is_valid() {
     assert!(EcdsaSigner::verify_signed(&signed).unwrap());
 }
 
+/// Verifies that the signature and payload hash are correctly formatted and can be used for ECDSA
+/// operations.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the signature and payload hash are correctly formatted and can be used
+/// for ECDSA operations.
 #[test]
 fn signature_hex_is_128_chars() {
     let signer = EcdsaSigner::generate();
@@ -65,6 +96,12 @@ fn signature_hex_is_128_chars() {
     assert_eq!(signed.signature_hex.len(), 128);
 }
 
+/// Verifies that the payload hash is correctly formatted and can be used for ECDSA operations.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the payload hash is correctly formatted and can be used for ECDSA
+/// operations.
 #[test]
 fn payload_hash_hex_is_64_chars() {
     let signer = EcdsaSigner::generate();
@@ -73,8 +110,11 @@ fn payload_hash_hex_is_64_chars() {
     assert_eq!(signed.payload_hash_hex.len(), 64);
 }
 
-// ── Tamper detection ──────────────────────────────────────────────────────────
-
+/// Verifies that tampering with the cognitive state or alert level fails verification.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that tampering with the cognitive state or alert level fails verification.
 #[test]
 fn modified_cognitive_state_fails_verification() {
     let signer = EcdsaSigner::generate();
@@ -83,6 +123,11 @@ fn modified_cognitive_state_fails_verification() {
     assert!(!EcdsaSigner::verify_signed(&signed).unwrap());
 }
 
+/// Verifies that tampering with the alert level fails verification.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that tampering with the alert level fails verification.
 #[test]
 fn modified_alert_level_fails_verification() {
     let signer = EcdsaSigner::generate();
@@ -91,6 +136,11 @@ fn modified_alert_level_fails_verification() {
     assert!(!EcdsaSigner::verify_signed(&signed).unwrap());
 }
 
+/// Verifies that tampering with the sequence ID fails verification.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that tampering with the sequence ID fails verification.
 #[test]
 fn modified_sequence_id_fails_verification() {
     let signer = EcdsaSigner::generate();
@@ -99,8 +149,11 @@ fn modified_sequence_id_fails_verification() {
     assert!(!EcdsaSigner::verify_signed(&signed).unwrap());
 }
 
-// ── Key operations ────────────────────────────────────────────────────────────
-
+/// Verifies that the `from_hex` roundtrip preserves the public key.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the `from_hex` roundtrip preserves the public key.
 #[test]
 fn from_hex_roundtrip_preserves_public_key() {
     let original = EcdsaSigner::generate();
@@ -108,14 +161,24 @@ fn from_hex_roundtrip_preserves_public_key() {
     assert_eq!(original.public_key_hex(), restored.public_key_hex());
 }
 
+/// Verifies that invalid hex input returns an error.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that invalid hex input returns an error.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
 #[test]
 fn from_hex_invalid_input_returns_error() {
     assert!(EcdsaSigner::from_hex("not-valid-hex").is_err());
     assert!(EcdsaSigner::from_hex("deadbeef").is_err()); // too short
 }
 
-// ── Standalone EcdsaVerifier ──────────────────────────────────────────────────
-
+/// Verifies that the standalone [`EcdsaVerifier`] accepts a valid signed output.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the standalone [`EcdsaVerifier`] accepts a valid signed output.
 #[test]
 fn standalone_verifier_accepts_valid_signed_output() {
     let signer = EcdsaSigner::generate();
@@ -130,6 +193,12 @@ fn standalone_verifier_accepts_valid_signed_output() {
     assert!(verifier.verify(&hash, &signed.signature_hex).unwrap());
 }
 
+/// Verifies that the standalone [`EcdsaVerifier`] rejects a signed output with the wrong key.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the standalone [`EcdsaVerifier`] rejects a signed output with the wrong
+/// key.
 #[test]
 fn standalone_verifier_rejects_wrong_key() {
     let signer_a = EcdsaSigner::generate();
@@ -145,13 +214,21 @@ fn standalone_verifier_rejects_wrong_key() {
     assert!(!verifier_b.verify(&hash, &signed.signature_hex).unwrap());
 }
 
+/// Verifies that the [`EcdsaVerifier`] rejects an invalid hex key.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that the [`EcdsaVerifier`] rejects an invalid hex key.
 #[test]
 fn verifier_from_hex_invalid_returns_error() {
     assert!(EcdsaVerifier::from_hex("not-a-key").is_err());
 }
 
-// ── Multiple cycles produce distinct signatures ───────────────────────────────
-
+/// Verifies that multiple cycles produce distinct signatures.
+///
+/// This test is part of the [`EcdsaSigner`] struct's public key generation and verification.
+///
+/// This test ensures that multiple cycles produce distinct signatures.
 #[test]
 fn distinct_results_produce_distinct_signatures() {
     let signer = EcdsaSigner::generate();

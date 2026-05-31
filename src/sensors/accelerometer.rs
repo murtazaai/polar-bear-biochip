@@ -8,12 +8,24 @@
 //! In production this module maps to the sensor HAL exposed by the bio-chip
 //! firmware over BLE GATT (`0x2A37` characteristic).
 
+/// Represents a mock 3-axis MEMS accelerometer sensor.
 use chrono::Utc;
 use rand::Rng;
 
 use crate::types::{AccelerometerReading, ActivityState};
 
 /// Mock 3-axis MEMS accelerometer sensor.
+///
+/// Simulates a 3-axis MEMS accelerometer with periodic gait oscillations and
+/// Gaussian noise.
+///
+/// The sensor maintains a sinusoidal gait model on the X and Y axes, with
+/// Gaussian noise added to each axis to simulate real-world measurement
+/// variability.
+///
+/// The sensor is updated at 50 Hz and provides readings in m/s² on each axis.
+///
+/// The sensor state is maintained internally and updated each time [`sample`] is called.
 pub struct AccelerometerSensor {
     rng: rand::rngs::ThreadRng,
     prev_x: f64,
@@ -23,8 +35,15 @@ pub struct AccelerometerSensor {
     step_counter: u32,
 }
 
+/// Initialises a new [`AccelerometerSensor`] with the device at rest.
+///
+/// The sensor is initialised with zero velocity and near-gravity Z axis value.
 impl AccelerometerSensor {
     /// Initialise with the device at rest.
+    ///
+    /// # Returns
+    ///
+    /// A new [`AccelerometerSensor`] instance.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -41,6 +60,10 @@ impl AccelerometerSensor {
     /// Every call advances a sinusoidal gait model and adds bounded noise.
     /// The returned [`ActivityState`] is classified from the resulting magnitude
     /// and lateral dynamics.
+    ///
+    /// # Returns
+    ///
+    /// The sampled [`AccelerometerReading`].
     pub fn sample(&mut self) -> AccelerometerReading {
         self.step_counter += 1;
 
@@ -70,15 +93,21 @@ impl AccelerometerSensor {
     }
 }
 
+/// Default implementation returns a new [`AccelerometerSensor`] at rest.
+///
+/// This is equivalent to calling [`AccelerometerSensor::new`].
 impl Default for AccelerometerSensor {
+    /// Creates a new [`AccelerometerSensor`] at rest.
     fn default() -> Self {
         Self::new()
     }
 }
 
-// ── helpers ───────────────────────────────────────────────────────────────────
-
 /// Classify activity state from net magnitude and lateral component.
+///
+/// # Returns
+///
+/// The classified [`ActivityState`].
 fn classify_activity(mag: f64, x: f64, y: f64) -> ActivityState {
     let lateral = (x * x + y * y).sqrt();
     match (mag, lateral) {
@@ -90,21 +119,43 @@ fn classify_activity(mag: f64, x: f64, y: f64) -> ActivityState {
 }
 
 /// Bounded random-walk step with 10 % of range as step size.
+///
+/// # Returns
+///
+/// The smoothed value.
 fn smooth(prev: f64, min: f64, max: f64, rng: &mut rand::rngs::ThreadRng) -> f64 {
     let noise: f64 = (rng.random::<f64>() - 0.5) * (max - min) * 0.10;
     (prev + noise).clamp(min, max)
 }
 
+/// Rounds a value to two decimal places.
+///
+/// # Returns
+///
+/// The rounded value.
 fn round2(v: f64) -> f64 {
     (v * 100.0).round() / 100.0
 }
 
-// ── unit tests ────────────────────────────────────────────────────────────────
-
+/// Tests for the [`AccelerometerSensor`] class.
+///
+/// Tests the [`AccelerometerSensor::sample`] method and other utility functions.
+///
+/// Tests the [`AccelerometerSensor::gravity_axis_near_9_81`] method.
+///
+/// Tests the [`AccelerometerSensor::magnitude_always_positive`] method.
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /// Tests that the gravity axis is near 9.81 m/s² (gravity).
+    ///
+    /// This test verifies that the gravity axis remains near 9.81 m/s² (gravity) after sampling.
+    ///
+    /// It samples the sensor 100 times and verifies that the `z` axis remains within the range
+    /// [8.5, 11.0] m/s².
+    ///
+    /// This test ensures that the sensor's `z` axis remains stable and close to gravity.
     #[test]
     fn gravity_axis_near_9_81() {
         let mut sensor = AccelerometerSensor::new();
@@ -118,6 +169,11 @@ mod tests {
         }
     }
 
+    /// Tests that the magnitude is always positive.
+    ///
+    /// This test verifies that the magnitude of the acceleration vector is always positive.
+    ///
+    /// It samples the sensor 50 times and verifies that the magnitude is always greater than 0.0.
     #[test]
     fn magnitude_always_positive() {
         let mut sensor = AccelerometerSensor::new();
@@ -127,6 +183,17 @@ mod tests {
         }
     }
 
+    /// Tests that the sensor remains stationary when no gait is detected.
+    ///
+    /// This test verifies that the sensor correctly classifies itself as Stationary when no gait is
+    /// detected.
+    ///
+    /// It samples the sensor once and verifies that the activity state is Stationary.
+    ///
+    /// It also verifies that the sensor does not panic when no gait is detected.
+    ///
+    /// It does this by creating a fresh sensor and sampling it once, then verifying that the
+    /// activity state is Stationary.
     #[test]
     fn stationary_when_no_gait() {
         // A freshly constructed sensor at rest should classify as Stationary.
@@ -143,6 +210,17 @@ mod tests {
         ));
     }
 
+    /// Tests that the default constructor does not panic.
+    ///
+    /// This test verifies that the default constructor does not panic when creating a new sensor.
+    ///
+    /// It does this by creating a fresh sensor and sampling it once, then verifying that the
+    /// magnitude is greater than 0.0.
+    ///
+    /// It also verifies that the sensor does not panic when no gait is detected.
+    ///
+    /// It does this by creating a fresh sensor and sampling it once, then verifying that the
+    /// activity state is Stationary.
     #[test]
     fn default_constructs_without_panic() {
         let mut sensor = AccelerometerSensor::default();
