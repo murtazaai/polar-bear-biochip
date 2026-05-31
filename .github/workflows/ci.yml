@@ -65,8 +65,8 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Install nightly toolchain + clippy
-              uses: dtolnay/rust-toolchain@nightly
+            - name: Install stable toolchain + clippy
+              uses: dtolnay/rust-toolchain@stable
               with:
                   components: clippy
 
