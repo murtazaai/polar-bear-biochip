@@ -103,6 +103,8 @@ impl SensorFusion {
 /// with freshly initialised sensors.
 ///
 /// ```
+/// use polar_bear_biochip::sensors::SensorFusion;
+///
 /// let fusion = SensorFusion::default();
 /// ```
 ///
@@ -115,20 +117,7 @@ impl Default for SensorFusion {
 
 /// Rounds a value to two decimal places.
 ///
-/// ```
-/// let rounded = round2(1.2345);
-/// assert_eq!(rounded, 1.23);
-/// ```
-///
-/// This is used internally to round sensor readings to two decimal places.
-///
-/// ```
-/// let rounded = round2(1.2345);
-/// assert_eq!(rounded, 1.23);
-/// ```
-///
-/// This function is also used to round sensor readings to two decimal places in the `sample`
-/// method.
+/// Used internally to round sensor readings and avoid noisy float tails in JSON output.
 fn round2(v: f64) -> f64 {
     (v * 100.0).round() / 100.0
 }
