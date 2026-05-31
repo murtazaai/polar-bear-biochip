@@ -8,7 +8,7 @@ Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-si
 [![rig-core](https://img.shields.io/badge/rig--core-0.37-purple)](https://rig.rs)
 [![License: PBS](https://img.shields.io/badge/license-PBS-blue)](LICENSE-PBS)
 
-> Built by **[Murtaza Ali Imtiaz](https://github.com/murtazaai)** · Technology Lead · Polar Bear Systems · July 2019–Present
+> Built by **[Murtaza Ali Imtiaz](https://github.com/murtazaai)** · Technology Lead · **Polar Bear Systems** · July 2019 – Present
 
 ---
 
@@ -321,12 +321,17 @@ project root in Zed and everything is ready.
 Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear Systems
 See [LICENSE-PBS](LICENSE-PBS) for permitted use.
 
+Licensed under:
+
+- [MIT License](LICENSE-MIT)
+- [Apache License, Version 2.0](LICENSE-APACHE)
+
 ---
 
 ## Author
 
-**Murtaza Ali Imtiaz**
+**Murtaza Ali Imtiaz** · Technology Lead · **Polar Bear Systems** · (July 2019 – Present)
 
-- LinkedIn: [linkedin.com/in/murtazai](https://linkedin.com/in/murtazai)
 - GitHub: [@murtazaai](https://github.com/murtazaai)
+- LinkedIn: [linkedin.com/in/murtazai](https://linkedin.com/in/murtazai)
 - Portfolio: [murtazai.com](https://murtazai.com)
