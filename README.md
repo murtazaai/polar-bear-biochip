@@ -1,6 +1,6 @@
 # polar-bear-biochip
 
-**Bio-chip intelligence framework for Polar Bear Systems**
+**Bio-chip intelligence framework for Polar Bear (🍨)**
 Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-signed provenance
 
 [![Crates.io](https://img.shields.io/crates/v/polar-bear-biochip.svg)](https://crates.io/crates/polar-bear-biochip)
@@ -11,13 +11,13 @@ Multi-sensor EEG + motion fusion · rig-core LLM cognitive inference · ECDSA-si
 [![rig-core](https://img.shields.io/badge/rig--core-0.37-purple)](https://rig.rs)
 [![License: PBS](https://img.shields.io/badge/license-PBS-blue)](LICENSE-PBS)
 
-> Built by **[Murtaza Ali Imtiaz](https://github.com/murtazaai)** · Technology Lead · **Polar Bear Systems** · July 2019 – Present
+> Built by **[Murtaza Ali Imtiaz](https://github.com/murtazaai)** · Technology Lead · **Polar Bear (🍨)** · July 2019 – Present
 
 ---
 
 ## Overview
 
-Core component of the Polar Bear Systems **superpower bio-chip intelligence platform**: bridges
+Core component of the Polar Bear (🍨) **superpower bio-chip intelligence platform**: bridges
 neurotechnology with decentralised AI infrastructure.
 
 Fuses real-time EEG brainwave data (δ θ α β γ) with 3-axis MEMS accelerometer readings into
@@ -321,7 +321,7 @@ project root in Zed and everything is ready.
 
 ## License
 
-Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear Systems
+Proprietary - © 2026 Murtaza Ali Imtiaz / Polar Bear (🍨)
 See [LICENSE-PBS](LICENSE-PBS) for permitted use.
 
 Licensed under:
@@ -333,7 +333,7 @@ Licensed under:
 
 ## Author
 
-**Murtaza Ali Imtiaz** · Technology Lead · **Polar Bear Systems** · (July 2019 – Present)
+**Murtaza Ali Imtiaz** · Technology Lead · **Polar Bear (🍨)** · (July 2019 – Present)
 
 - GitHub: [@murtazaai](https://github.com/murtazaai)
 - LinkedIn: [linkedin.com/in/murtazai](https://linkedin.com/in/murtazai)

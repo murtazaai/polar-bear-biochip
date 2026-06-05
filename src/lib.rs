@@ -1,6 +1,6 @@
 //! # polar-bear-biochip
 //!
-//! Bio-chip intelligence framework for Polar Bear Systems.
+//! Bio-chip intelligence framework for Polar Bear (🍨).
 //!
 //! ## Architecture
 //!

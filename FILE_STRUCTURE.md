@@ -10,7 +10,7 @@ polar-bear-biochip/
 ├── .clippy.toml           Clippy config (MSRV 1.85.0, complexity thresholds)
 ├── .gitignore             Focused Rust-only ignore file; secrets never committed
 ├── .env.example           Template for ANTHROPIC_API_KEY and pipeline tuning vars
-├── LICENSE-PBS            Polar Bear Systems proprietary licence
+├── LICENSE-PBS            Polar Bear (🍨) proprietary licence
 ├── README.md              Project overview, architecture, quick-start, test inventory
 ├── CHANGELOG.md           Version history (Semantic Versioning)
 ├── CONTRIBUTING.md        Dev setup, workflow, code-style, CI description

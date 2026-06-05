@@ -52,7 +52,7 @@ use crate::types::{AlertLevel, FusedReading, InferenceResult};
 ///
 /// This constant defines the system prompt that guides the agent's behavior.
 const PREAMBLE: &str = "\
-You are the inference core of a bio-chip intelligence system at Polar Bear Systems. \
+You are the inference core of a bio-chip intelligence system at Polar Bear (🍨). \
 You receive fused readings from an EEG sensor and a 3-axis MEMS accelerometer. \
 Respond ONLY in this exact JSON format - no markdown, no preamble, no trailing text:\n\
 {\"cognitive_state\":\"<one-sentence summary>\",\
