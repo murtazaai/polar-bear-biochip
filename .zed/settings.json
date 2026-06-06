@@ -2,216 +2,226 @@
 // Project: Rust edition 2024, MSRV 1.85.0
 // These settings override global Zed settings for this workspace only.
 {
-  // ── Editor ────────────────────────────────────────────────────────────────
-  "tab_size": 4,
-  "hard_tabs": false,
-  "show_whitespaces": "selection",
-  "ensure_final_newline_on_save": true,
-  "remove_trailing_whitespace_on_save": true,
+    // ── Editor ────────────────────────────────────────────────────────────────
+    "tab_size": 4,
+    "hard_tabs": false,
+    "show_whitespaces": "selection",
+    "ensure_final_newline_on_save": true,
+    "remove_trailing_whitespace_on_save": true,
 
-  // ── Rust language overrides ───────────────────────────────────────────────
-  "languages": {
-    "Rust": {
-      "tab_size": 4,
-      "hard_tabs": false,
-      "format_on_save": "on",
-      // Use rust-analyzer's rustfmt integration (honours rustfmt.toml).
-      "formatter": "language_server",
-      "code_actions_on_format": {
-        // Auto-apply all rust-analyzer quick-fixes on save.
-        "source.fixAll.rustAnalyzer": true
-      }
-    },
-    "TOML": {
-      "tab_size": 4,
-      "format_on_save": "on"
-    },
-    "Markdown": {
-      "tab_size": 2,
-      "soft_wrap": "editor_width"
-    },
-    "JSON": {
-      "tab_size": 2
-    }
-  },
-
-  // ── rust-analyzer LSP ─────────────────────────────────────────────────────
-  "lsp": {
-    "rust-analyzer": {
-      "initialization_options": {
-
-        // ── Cargo ────────────────────────────────────────────────────────────
-        "cargo": {
-          // Check all targets (lib, bin, tests, examples, benches) so
-          // inline diagnostics appear in every file.
-          "allTargets": true,
-          // Default feature set; developers can switch to "all" locally.
-          "features": "default",
-          // Autoreload when Cargo.toml or Cargo.lock changes.
-          "autoreload": true
-        },
-
-        // ── Real-time diagnostics via clippy ──────────────────────────────
-        // Matches the CI lint configuration in Cargo.toml [lints.*].
-        "check": {
-          "command": "clippy",
-          "extraArgs": ["--all-targets", "--", "-D", "warnings"]
-        },
-
-        // ── Diagnostics ───────────────────────────────────────────────────
-        "diagnostics": {
-          "enable": true,
-          "experimental": {
-            "enable": true
-          },
-          // Surface type mismatches inline (complementary to compiler errors).
-          "styleLints": {
-            "enable": true
-          }
-        },
-
-        // ── Inlay hints ───────────────────────────────────────────────────
-        // Calibrated for a data-flow-heavy Rust codebase (sensor structs,
-        // ECDSA types, async futures) where type inference often obscures
-        // intent in complex chains.
-        "inlayHints": {
-          // Show lifetime annotations where non-trivial.
-          "lifetimeElisionHints": {
-            "enable": "skip_trivial",
-            "useParameterNames": true
-          },
-          // Show inferred return types on closures that contain a block body.
-          "closureReturnTypeHints": {
-            "enable": "with_block"
-          },
-          // Show binding-mode markers (ref / ref mut) in pattern destructures.
-          "bindingModeHints": {
-            "enable": true
-          },
-          // Show chained method call types (useful for iterator + future chains).
-          "chainingHints": {
-            "enable": true
-          },
-          // Show closing brace labels on long blocks.
-          "closingBraceHints": {
-            "enable": true,
-            "minLines": 15
-          },
-          // Show enum discriminant values in fieldless enums (AlertLevel etc.).
-          "discriminantHints": {
-            "enable": "fieldless"
-          },
-          // Show implicit reborrow coercions.
-          "expressionAdjustmentHints": {
-            "enable": "reborrow"
-          },
-          // Show function parameter names at call sites.
-          "parameterHints": {
-            "enable": true
-          },
-          // Render the colon separator between name and type.
-          "renderColons": true,
-          // Show exclusive range end types.
-          "rangeExclusiveHints": {
-            "enable": true
-          },
-          // Show inferred variable types.
-          "typeHints": {
-            "enable": true,
-            "hideClosureInitialization": false,
-            "hideNamedConstructor": false
-          }
-        },
-
-        // ── Proc-macros ───────────────────────────────────────────────────
-        // Required for serde derive, clap derive, thiserror, etc.
-        "procMacro": {
-          "enable": true,
-          "ignored": {}
-        },
-
-        // ── Completion ────────────────────────────────────────────────────
-        "completion": {
-          // Include private items from the current crate.
-          "privateEditable": {
-            "enable": true
-          },
-          // Show full function signatures in completion docs.
-          "fullFunctionSignatures": {
-            "enable": true
-          }
-        },
-
-        // ── Hover ─────────────────────────────────────────────────────────
-        "hover": {
-          "actions": {
-            "enable": true,
-            // Show "Run" / "Debug" actions on hover for #[test] functions.
-            "run": {
-              "enable": true
-            }
-          },
-          // Show memory layout of types on hover.
-          "memoryLayout": {
-            "enable": true,
-            "alignment": "both",
-            "niches": true,
-            "offset": "both",
-            "size": "both"
-          }
-        },
-
-        // ── rustfmt ───────────────────────────────────────────────────────
-        "rustfmt": {
-          // Enable per-range formatting (format selection, not whole file).
-          "rangeFormatting": {
-            "enable": true
-          }
-        },
-
-        // ── Semantic highlighting ─────────────────────────────────────────
-        "semanticHighlighting": {
-          "strings": {
-            "enable": true
-          },
-          "operator": {
-            "enable": true,
-            // Distinguish mutable borrows visually.
-            "specialization": {
-              "enable": true
-            }
-          },
-          "punctuation": {
-            "enable": true,
-            "specialization": {
-              "enable": true
+    // ── Rust language overrides ───────────────────────────────────────────────
+    "languages": {
+        "Rust": {
+            "tab_size": 4,
+            "hard_tabs": false,
+            "format_on_save": "on",
+            // Use rust-analyzer's rustfmt integration (honours rustfmt.toml).
+            "formatter": "language_server",
+            "code_actions_on_format": {
+                // Auto-apply all rust-analyzer quick-fixes on save.
+                "source.fixAll.rustAnalyzer": true,
             },
-            "separate": {
-              "macro": {
-                "bang": true
-              }
-            }
-          }
         },
+        "TOML": {
+            "tab_size": 4,
+            "format_on_save": "on",
+        },
+        "Markdown": {
+            "tab_size": 2,
+            "soft_wrap": "editor_width",
+        },
+        "JSON": {
+            "tab_size": 2,
+        },
+    },
 
-        // ── Imports ───────────────────────────────────────────────────────
-        "imports": {
-          // Group std / external / crate imports (mirrors rustfmt convention).
-          "granularity": {
-            "group": "crate"
-          },
-          "prefix": "crate"
-        }
-      }
-    }
-  },
+    // ── rust-analyzer LSP ─────────────────────────────────────────────────────
+    "lsp": {
+        "rust-analyzer": {
+            "initialization_options": {
+                // ── Cargo ────────────────────────────────────────────────────────────
+                "cargo": {
+                    // Check all targets (lib, bin, tests, examples, benches) so
+                    // inline diagnostics appear in every file.
+                    "allTargets": true,
+                    // Default feature set; developers can switch to "all" locally.
+                    "features": "default",
+                    // Autoreload when Cargo.toml or Cargo.lock changes.
+                    "autoreload": true,
+                },
 
-  // ── File exclusions ───────────────────────────────────────────────────────
-  // Keep the project tree clean; exclude build artefacts and cache dirs.
-  "file_scan_exclusions": [
-    "**/.git",
-    "**/target",
-    "**/.cargo",
-    "**/signed_outputs/*.json"
-  ]
+                // Run clippy (not cargo check) on save to match [lints.clippy] in Cargo.toml.
+                // pedantic + all with the same allow-list as .clippy.toml.
+                "check": {
+                    "command": "clippy",
+                    "extraArgs": [
+                        // "--all-targets",
+                        "--",
+                        "-D",
+                        "warnings",
+                        "-A",
+                        "clippy::module_name_repetitions",
+                        "-A",
+                        "clippy::must_use_candidate",
+                        "-A",
+                        "clippy::missing_errors_doc",
+                    ],
+                },
+
+                // ── Diagnostics ───────────────────────────────────────────────────
+                "diagnostics": {
+                    "enable": true,
+                    "experimental": {
+                        "enable": true,
+                    },
+                    // Surface type mismatches inline (complementary to compiler errors).
+                    "styleLints": {
+                        "enable": true,
+                    },
+                },
+
+                // ── Inlay hints ───────────────────────────────────────────────────
+                // Calibrated for a data-flow-heavy Rust codebase (sensor structs,
+                // ECDSA types, async futures) where type inference often obscures
+                // intent in complex chains.
+                "inlayHints": {
+                    // Show lifetime annotations where non-trivial.
+                    "lifetimeElisionHints": {
+                        "enable": "skip_trivial",
+                        "useParameterNames": true,
+                    },
+                    // Show inferred return types on closures that contain a block body.
+                    "closureReturnTypeHints": {
+                        "enable": "with_block",
+                    },
+                    // Show binding-mode markers (ref / ref mut) in pattern destructures.
+                    "bindingModeHints": {
+                        "enable": true,
+                    },
+                    // Show chained method call types (useful for iterator + future chains).
+                    "chainingHints": {
+                        "enable": true,
+                    },
+                    // Show closing brace labels on long blocks.
+                    "closingBraceHints": {
+                        "enable": true,
+                        "minLines": 15,
+                    },
+                    // Show enum discriminant values in fieldless enums (AlertLevel etc.).
+                    "discriminantHints": {
+                        "enable": "fieldless",
+                    },
+                    // Show implicit reborrow coercions.
+                    "expressionAdjustmentHints": {
+                        "enable": "reborrow",
+                    },
+                    // Show function parameter names at call sites.
+                    "parameterHints": {
+                        "enable": true,
+                    },
+                    // Render the colon separator between name and type.
+                    "renderColons": true,
+                    // Show exclusive range end types.
+                    "rangeExclusiveHints": {
+                        "enable": true,
+                    },
+                    // Show inferred variable types.
+                    "typeHints": {
+                        "enable": true,
+                        "hideClosureInitialization": false,
+                        "hideNamedConstructor": false,
+                    },
+                },
+
+                // ── Proc-macros ───────────────────────────────────────────────────
+                // Required for serde derive, clap derive, thiserror, etc.
+                "procMacro": {
+                    "enable": true,
+                    "ignored": {},
+                },
+
+                // ── Completion ────────────────────────────────────────────────────
+                "completion": {
+                    // Include private items from the current crate.
+                    "privateEditable": {
+                        "enable": true,
+                    },
+                    // Show full function signatures in completion docs.
+                    "fullFunctionSignatures": {
+                        "enable": true,
+                    },
+                },
+
+                // ── Hover ─────────────────────────────────────────────────────────
+                "hover": {
+                    "actions": {
+                        "enable": true,
+                        // Show "Run" / "Debug" actions on hover for #[test] functions.
+                        "run": {
+                            "enable": true,
+                        },
+                    },
+                    // Show memory layout of types on hover.
+                    "memoryLayout": {
+                        "enable": true,
+                        "alignment": "both",
+                        "niches": true,
+                        "offset": "both",
+                        "size": "both",
+                    },
+                },
+
+                // ── rustfmt ───────────────────────────────────────────────────────
+                "rustfmt": {
+                    // Enable per-range formatting (format selection, not whole file).
+                    "rangeFormatting": {
+                        "enable": true,
+                    },
+                },
+
+                // ── Semantic highlighting ─────────────────────────────────────────
+                "semanticHighlighting": {
+                    "strings": {
+                        "enable": true,
+                    },
+                    "operator": {
+                        "enable": true,
+                        // Distinguish mutable borrows visually.
+                        "specialization": {
+                            "enable": true,
+                        },
+                    },
+                    "punctuation": {
+                        "enable": true,
+                        "specialization": {
+                            "enable": true,
+                        },
+                        "separate": {
+                            "macro": {
+                                "bang": true,
+                            },
+                        },
+                    },
+                },
+
+                // ── Imports ───────────────────────────────────────────────────────
+                "imports": {
+                    // Group std / external / crate imports (mirrors rustfmt convention).
+                    "granularity": {
+                        "group": "crate",
+                    },
+                    "prefix": "crate",
+                },
+            },
+        },
+    },
+
+    // ── File exclusions ───────────────────────────────────────────────────────
+    // Keep the project tree clean; exclude build artefacts and cache dirs.
+    "file_scan_exclusions": [
+        "**/.git",
+        "**/target",
+        "**/.cargo",
+        "**/signed_outputs/*.json",
+    ],
 }
